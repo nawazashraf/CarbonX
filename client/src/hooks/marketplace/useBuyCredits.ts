@@ -26,7 +26,7 @@ export const useBuyCredits = () => {
         address: USDC_ADDRESS,
         abi: usdcAbi,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, BigInt(totalPrice)],
+        args: [MARKETPLACE_ADDRESS, BigInt(Math.round(totalPrice * 1e6))],
       });
 
       await waitForTransactionReceipt(config, {

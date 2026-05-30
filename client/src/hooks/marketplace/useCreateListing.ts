@@ -33,7 +33,7 @@ export const useCreateListing = () => {
         address: CARBON_TOKEN_ADDRESS,
         abi: carbonAbi,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, BigInt(creditsListed)],
+        args: [MARKETPLACE_ADDRESS, BigInt(creditsListed) * BigInt("1000000000000000000")],
       });
 
       await waitForTransactionReceipt(config, {
@@ -44,7 +44,7 @@ export const useCreateListing = () => {
         address: MARKETPLACE_ADDRESS,
         abi: marketplaceAbi,
         functionName: "listCredits",
-        args: [BigInt(creditsListed), BigInt(totalPrice)],
+        args: [BigInt(creditsListed), BigInt(Math.round(totalPrice * 1e6))],
       });
 
       const receipt = await waitForTransactionReceipt(config, {
