@@ -9,13 +9,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 function WalletButton() {
   return (
     <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        mounted,
-        openAccountModal,
-        openConnectModal,
-      }) => {
+      {({ account, chain, mounted, openAccountModal, openConnectModal }) => {
         const connected = mounted && account && chain;
 
         if (!connected) {
@@ -68,11 +62,11 @@ export default function Navbar() {
   }, []);
 
   const navItems = [
+    { label: "Dashboard", href: "/dashboard" },
     { label: "Marketplace", href: "/marketplace" },
     { label: "Projects", href: "/projects" },
     { label: "Rankings", href: "/rankings" },
     { label: "Analytics", href: "/analytics" },
-    { label: "Dashboard", href: "/dashboard" },
   ];
 
   return (
@@ -150,9 +144,7 @@ export default function Navbar() {
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`font-label-md text-base transition-colors ${
-                      active
-                        ? "text-primary font-bold"
-                        : "text-text-secondary"
+                      active ? "text-primary font-bold" : "text-text-secondary"
                     }`}
                   >
                     {item.label}
