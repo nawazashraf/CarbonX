@@ -40,7 +40,7 @@ export default function Navbar() {
           : "bg-surface/80 backdrop-blur-xl"
       }`}
     >
-      <div className="mx-auto grid h-full max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6">
+      <div className="mx-auto grid h-full max-w-400 grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6">
         
         {/* Logo */}
         <div className="flex items-center">

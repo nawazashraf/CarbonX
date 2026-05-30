@@ -237,10 +237,10 @@ export default function Marketplace() {
   return (
     <div className="flex-1 w-full bg-surface-container-lowest text-on-surface">
       {/* Hero Section */}
-      <section className="relative min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden px-6 lg:px-8 py-16 lg:py-24">
+      <section className="relative min-h-150 lg:min-h-187.5 flex items-center overflow-hidden px-6 lg:px-8 py-16 lg:py-24">
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 -right-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-0 -left-1/4 w-[500px] h-[500px] bg-secondary/10 rounded-full blur-[120px]"></div>
+          <div className="absolute top-1/4 -right-1/4 w-150 h-150 bg-primary/10 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-0 -left-1/4 w-125 h-125 bg-secondary/10 rounded-full blur-[120px]"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -275,7 +275,7 @@ export default function Marketplace() {
           </div>
 
           <div className="hidden lg:block relative group">
-            <div className="absolute -inset-4 bg-gradient-to-r from-primary to-secondary opacity-20 blur-2xl group-hover:opacity-30 transition-opacity"></div>
+            <div className="absolute -inset-4 bg-linear-to-r from-primary to-secondary opacity-20 blur-2xl group-hover:opacity-30 transition-opacity"></div>
             <div className="relative glass-card rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
               <img
                 alt="Climate Action"
@@ -367,7 +367,7 @@ export default function Marketplace() {
 
           <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
             {/* Search Input */}
-            <div className="relative flex-1 sm:flex-initial min-w-[200px] sm:min-w-[280px]">
+            <div className="relative flex-1 sm:flex-initial min-w-50 sm:min-w-70">
               <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary text-[20px]">
                 search
               </span>
@@ -449,7 +449,7 @@ export default function Marketplace() {
                 className="group glass-card rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-300 glow-hover flex flex-col justify-between"
               >
                 <div>
-                  <div className="relative overflow-hidden aspect-[4/3]">
+                  <div className="relative overflow-hidden aspect-4/3">
                     <img
                       alt={project.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -649,10 +649,10 @@ export default function Marketplace() {
               </div>
 
               {txState === "idle" && (
-                <div className="p-6 space-y-6 flex-grow">
+                <div className="p-6 space-y-6 grow">
                   {/* Selected Project Summary */}
                   <div className="flex gap-4 p-3 bg-surface-container/50 border border-border-slate rounded-xl">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0">
                       <img
                         alt={selectedProject.name}
                         className="w-full h-full object-cover"
@@ -751,7 +751,7 @@ export default function Marketplace() {
               )}
 
               {(txState === "submitting" || txState === "confirming") && (
-                <div className="p-12 flex flex-col items-center justify-center text-center space-y-6 flex-grow">
+                <div className="p-12 flex flex-col items-center justify-center text-center space-y-6 grow">
                   {/* Glowing Spinner */}
                   <div className="relative flex items-center justify-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
@@ -774,7 +774,7 @@ export default function Marketplace() {
               )}
 
               {txState === "success" && (
-                <div className="p-8 text-center space-y-6 flex-grow">
+                <div className="p-8 text-center space-y-6 grow">
                   {/* Success Indicator */}
                   <div className="mx-auto h-16 w-16 bg-secondary/15 rounded-full flex items-center justify-center border border-secondary/35 text-secondary shadow-[0_0_15px_rgba(74,225,118,0.2)]">
                     <span className="material-symbols-outlined text-[32px]">
@@ -802,7 +802,7 @@ export default function Marketplace() {
                       <span className="text-text-secondary font-semibold uppercase">
                         Tx Hash
                       </span>
-                      <span className="font-mono text-primary select-all max-w-[180px] truncate">
+                      <span className="font-mono text-primary select-all max-w-45 truncate">
                         {txHash}
                       </span>
                     </div>

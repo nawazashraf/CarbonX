@@ -167,7 +167,7 @@ export default function ProjectsDashboard() {
       <div className="flex flex-1 overflow-hidden relative">
         
         {/* SideNavBar (Sticky sidebar) */}
-        <aside className="hidden lg:flex flex-col h-[calc(100vh-80px)] w-64 border-r border-outline bg-surface-container p-6 gap-6 sticky top-[80px]">
+        <aside className="hidden lg:flex flex-col h-[calc(100vh-80px)] w-64 border-r border-outline bg-surface-container p-6 gap-6 sticky top-20">
           <div>
             <h2 className="font-headline-md text-lg font-bold text-on-surface">Project Filters</h2>
             <p className="text-xs text-on-surface-variant font-medium">Manage submissions</p>
@@ -247,7 +247,7 @@ export default function ProjectsDashboard() {
         </aside>
 
         {/* Main Content Canvas */}
-        <main className="flex-grow p-6 lg:p-8 overflow-y-auto">
+        <main className="grow p-6 lg:p-8 overflow-y-auto">
           
           {/* Header Row */}
           <header className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -317,7 +317,7 @@ export default function ProjectsDashboard() {
                 <div
                   key={project.id}
                   onClick={() => setViewingDetailProject(project)}
-                  className="bg-[#171717] border border-[#2A2A2A] rounded-2xl overflow-hidden group hover:border-primary transition-all duration-300 flex flex-col justify-between cursor-pointer"
+                  className="bg-surface-graphite border border-[#2A2A2A] rounded-2xl overflow-hidden group hover:border-primary transition-all duration-300 flex flex-col justify-between cursor-pointer"
                 >
                   <div>
                     <div className="h-40 overflow-hidden relative">
@@ -404,7 +404,7 @@ export default function ProjectsDashboard() {
                   <span className="material-symbols-outlined text-[28px]">cloud_upload</span>
                 </div>
                 <h3 className="font-semibold text-sm text-on-surface mb-1">Submit New Project</h3>
-                <p className="text-xs text-on-surface-variant text-center max-w-[200px]">
+                <p className="text-xs text-on-surface-variant text-center max-w-50">
                   Drag manifest files here or click to open project uploader
                 </p>
               </div>
@@ -615,7 +615,7 @@ export default function ProjectsDashboard() {
                       <div className="p-3 bg-success/5 border border-success/35 rounded-xl flex flex-col gap-1.5 mt-2">
                         {uploadedFiles.map((file, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs text-success">
-                            <span className="flex items-center gap-1.5 truncate max-w-[280px]">
+                            <span className="flex items-center gap-1.5 truncate max-w-70">
                               <span className="material-symbols-outlined text-sm">check_circle</span>
                               {file}
                             </span>
@@ -638,7 +638,7 @@ export default function ProjectsDashboard() {
               )}
 
               {(submitState === "uploading" || submitState === "auditing") && (
-                <div className="p-12 text-center space-y-6 flex-grow">
+                <div className="p-12 text-center space-y-6 grow">
                   <div className="relative flex items-center justify-center mx-auto">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
                     <div className="absolute animate-pulse h-10 w-10 bg-primary/20 rounded-full"></div>
@@ -657,7 +657,7 @@ export default function ProjectsDashboard() {
               )}
 
               {submitState === "success" && (
-                <div className="p-8 text-center space-y-6 flex-grow">
+                <div className="p-8 text-center space-y-6 grow">
                   <div className="mx-auto h-16 w-16 bg-success/15 rounded-full flex items-center justify-center border border-success/35 text-success shadow-[0_0_15px_rgba(34,197,94,0.25)]">
                     <span className="material-symbols-outlined text-[32px]">check_circle</span>
                   </div>
@@ -732,7 +732,7 @@ export default function ProjectsDashboard() {
 
               <div className="h-px bg-outline mb-6"></div>
 
-              <div className="space-y-6 flex-grow">
+              <div className="space-y-6 grow">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Description</h4>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
@@ -766,7 +766,7 @@ export default function ProjectsDashboard() {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Validation History</h4>
                   <div className="relative pl-6 border-l border-outline space-y-4 text-xs">
                     <div className="relative">
-                      <div className="absolute -left-[30px] top-0.5 bg-[#13141a] p-0.5 text-success">
+                      <div className="absolute -left-7.5 top-0.5 bg-[#13141a] p-0.5 text-success">
                         <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                           check_circle
                         </span>
@@ -776,7 +776,7 @@ export default function ProjectsDashboard() {
                     </div>
 
                     <div className="relative">
-                      <div className="absolute -left-[30px] top-0.5 bg-[#13141a] p-0.5 text-success">
+                      <div className="absolute -left-7.5 top-0.5 bg-[#13141a] p-0.5 text-success">
                         <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                           check_circle
                         </span>
@@ -787,7 +787,7 @@ export default function ProjectsDashboard() {
 
                     <div className="relative">
                       <div
-                        className={`absolute -left-[30px] top-0.5 bg-[#13141a] p-0.5 ${
+                        className={`absolute -left-7.5 top-0.5 bg-[#13141a] p-0.5 ${
                           viewingDetailProject.status === "approved" ? "text-success" : "text-warning animate-pulse"
                         }`}
                       >
