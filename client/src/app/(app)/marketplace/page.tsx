@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useProjects } from "@/hooks/projects/useProjects";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,72 +10,72 @@ interface Project {
   name: string;
   projectNumber: string;
   location: string;
-  category: "Forestry" | "Energy" | "Ocean" | "Tech";
+  category: string;
   price: number;
   score: number;
   image: string;
   description: string;
   verified: boolean;
   developer: string;
+  availableCredits: number;
 }
 
-const INITIAL_PROJECTS: Project[] = [
-  {
-    id: "proj-1",
-    name: "Amazon Basin Reforestation",
-    projectNumber: "#4022",
-    location: "Brazil",
-    category: "Forestry",
-    price: 24.5,
-    score: 98,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmYck8zMT03Vz_euIoi1PRgoYdFKMhUoGMmkjdP_olcgkQvKU_MNyFmtlkUYictINVBi9pMWgw_pUZkxmlH6RZ744qQb0IybpApyWuW9441WlkdDLd4_zSvlFsPjsLWjbJiFQTl4ea7PCt0Ciw4j1L6b6g0ISAMjjT8CmG-NIm6RfESik3_7r-VzHdNdd0CU6W5-RjLNERwSMi2E7ZZ8rtV1R5tnG2G5Wmaq1Eia17eWHdtBAj60n3CCs7MffES5Lnmd-dAlkuInU",
-    description: "Restoring native tree species across the Amazon Basin to secure carbon sinks and support indigenous communities.",
-    verified: true,
-    developer: "BioCarbon Brazil",
-  },
-  {
-    id: "proj-2",
-    name: "Sahara Solar Expansion",
-    projectNumber: "#1289",
-    location: "Morocco",
-    category: "Energy",
-    price: 18.9,
-    score: 92,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRK2LV0NHYEdwHpzw_F6kr0BZntyjSLjuDr3P_UAopCPm-WNbDWQICeOMw3MthUxZSEX-DSTXhpmKZdNIFmpkWYoH-jKAFoQeS9TXF0RM_7LuL-5etL5qfbeBGdfsR2GcVCRbDzsQl1BBIeNr78hsgDiEEezmndgcXRP6f2Csm4UsnALfeapsloEZXZUE_1w1tsP2JmvVVcVE2zlECInRZF7H7MoXi83o2h73BBRMnf-SOK53H_VIlBmJRJQrs7NhjTK8apY4rbXU",
-    description: "Harnessing solar power from the Sahara Desert to displace fossil fuel dependency in North Africa.",
-    verified: true,
-    developer: "Atlas Renewables",
-  },
-  {
-    id: "proj-3",
-    name: "Andean Carbon Sink",
-    projectNumber: "#8831",
-    location: "Peru",
-    category: "Forestry",
-    price: 32.0,
-    score: 95,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhO6PVM1vsgvy-hhe2b9EC5J8m14I7UADf6zoUgQejZf04GHuQzVSYwqqip42bSUwWXqtZCE7bDQgJXExlG-iR7pwCX5zcKdp8ADMkMgveDlzCAKNzbAMCJf99Xj-fHMmR2seId0h26mmM3u9NGsUgwnvGfsO-HRe1Hz9Cdc7NQfOeUT1fTcyRb3WKQcG1kNunAyjMp92IMRSZO7t7fRlJCyIa8lKqTFJTjT-XAQf1O1rw8Oi47T9td62d09OwouuKH0cs60-w5Vw",
-    description: "High-altitude mountain forestry conservation preventing soil erosion and enhancing regional carbon sequestration.",
-    verified: true,
-    developer: "Andes Conservation",
-  },
-  {
-    id: "proj-4",
-    name: "Direct Air Algae Capture",
-    projectNumber: "#5521",
-    location: "Iceland",
-    category: "Tech",
-    price: 120.0,
-    score: 89,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDY2KLYhYENQo6KhTBWpAXA7q2InYGY95Xvmf81-MDT2sgcFPPtpel29K8ylPwx9JaVDU8VJF4Vrm6kkvPi21K2mRfcemwhIb65aXALCPGnXvzG7m3u3g00kp5iFCg2j0P7fimn7AQhARLLXJdaRtPKlPXWEykqv3OuCWbV6BrLr0haEZ7GWZEGrVMw20QGCcuontEX86kmrLSsDUuTXP1ZhbIsW5Uzk7cFYy1A-aptovom_9OGGGf2PwlW-YWjRrSKDajI7HHU_YU",
-    description: "Utilizing modern laboratory bioreactors to cultivate high-density algae, securing long-term geological carbon storage.",
-    verified: true,
-    developer: "Sinc-Algae Tech",
-  },
-];
+// const INITIAL_PROJECTS: Project[] = [
+//   {
+//     id: "proj-1",
+//     name: "Amazon Basin Reforestation",
+//     projectNumber: "#4022",
+//     location: "Brazil",
+//     category: "Forestry",
+//     price: 24.5,
+//     score: 98,
+//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmYck8zMT03Vz_euIoi1PRgoYdFKMhUoGMmkjdP_olcgkQvKU_MNyFmtlkUYictINVBi9pMWgw_pUZkxmlH6RZ744qQb0IybpApyWuW9441WlkdDLd4_zSvlFsPjsLWjbJiFQTl4ea7PCt0Ciw4j1L6b6g0ISAMjjT8CmG-NIm6RfESik3_7r-VzHdNdd0CU6W5-RjLNERwSMi2E7ZZ8rtV1R5tnG2G5Wmaq1Eia17eWHdtBAj60n3CCs7MffES5Lnmd-dAlkuInU",
+//     description: "Restoring native tree species across the Amazon Basin to secure carbon sinks and support indigenous communities.",
+//     verified: true,
+//     developer: "BioCarbon Brazil",
+//   },
+//   {
+//     id: "proj-2",
+//     name: "Sahara Solar Expansion",
+//     projectNumber: "#1289",
+//     location: "Morocco",
+//     category: "Energy",
+//     price: 18.9,
+//     score: 92,
+//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRK2LV0NHYEdwHpzw_F6kr0BZntyjSLjuDr3P_UAopCPm-WNbDWQICeOMw3MthUxZSEX-DSTXhpmKZdNIFmpkWYoH-jKAFoQeS9TXF0RM_7LuL-5etL5qfbeBGdfsR2GcVCRbDzsQl1BBIeNr78hsgDiEEezmndgcXRP6f2Csm4UsnALfeapsloEZXZUE_1w1tsP2JmvVVcVE2zlECInRZF7H7MoXi83o2h73BBRMnf-SOK53H_VIlBmJRJQrs7NhjTK8apY4rbXU",
+//     description: "Harnessing solar power from the Sahara Desert to displace fossil fuel dependency in North Africa.",
+//     verified: true,
+//     developer: "Atlas Renewables",
+//   },
+//   {
+//     id: "proj-3",
+//     name: "Andean Carbon Sink",
+//     projectNumber: "#8831",
+//     location: "Peru",
+//     category: "Forestry",
+//     price: 32.0,
+//     score: 95,
+//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhO6PVM1vsgvy-hhe2b9EC5J8m14I7UADf6zoUgQejZf04GHuQzVSYwqqip42bSUwWXqtZCE7bDQgJXExlG-iR7pwCX5zcKdp8ADMkMgveDlzCAKNzbAMCJf99Xj-fHMmR2seId0h26mmM3u9NGsUgwnvGfsO-HRe1Hz9Cdc7NQfOeUT1fTcyRb3WKQcG1kNunAyjMp92IMRSZO7t7fRlJCyIa8lKqTFJTjT-XAQf1O1rw8Oi47T9td62d09OwouuKH0cs60-w5Vw",
+//     description: "High-altitude mountain forestry conservation preventing soil erosion and enhancing regional carbon sequestration.",
+//     verified: true,
+//     developer: "Andes Conservation",
+//   },
+//   {
+//     id: "proj-4",
+//     name: "Direct Air Algae Capture",
+//     projectNumber: "#5521",
+//     location: "Iceland",
+//     category: "Tech",
+//     price: 120.0,
+//     score: 89,
+//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDY2KLYhYENQo6KhTBWpAXA7q2InYGY95Xvmf81-MDT2sgcFPPtpel29K8ylPwx9JaVDU8VJF4Vrm6kkvPi21K2mRfcemwhIb65aXALCPGnXvzG7m3u3g00kp5iFCg2j0P7fimn7AQhARLLXJdaRtPKlPXWEykqv3OuCWbV6BrLr0haEZ7GWZEGrVMw20QGCcuontEX86kmrLSsDUuTXP1ZhbIsW5Uzk7cFYy1A-aptovom_9OGGGf2PwlW-YWjRrSKDajI7HHU_YU",
+//     description: "Utilizing modern laboratory bioreactors to cultivate high-density algae, securing long-term geological carbon storage.",
+//     verified: true,
+//     developer: "Sinc-Algae Tech",
+//   },
+// ];
 
 export default function Marketplace() {
-  const [projects] = useState<Project[]>(INITIAL_PROJECTS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("score-desc");
@@ -82,13 +83,51 @@ export default function Marketplace() {
 
   // Purchase Modal Form State
   const [purchaseTons, setPurchaseTons] = useState<number>(10);
-  const [txState, setTxState] = useState<"idle" | "submitting" | "confirming" | "success">("idle");
+  const [txState, setTxState] = useState<
+    "idle" | "submitting" | "confirming" | "success"
+  >("idle");
   const [txHash, setTxHash] = useState<string>("");
 
   // Live Statistics States
   const [liveCreditsIssued, setLiveCreditsIssued] = useState(4200154);
   const [liveCreditsRetired, setLiveCreditsRetired] = useState(1804230);
   const [liveCarbonReduced, setLiveCarbonReduced] = useState(2400150320);
+
+  const { data, isLoading, error } = useProjects();
+
+  const projects: Project[] = useMemo(() => {
+    if (!data?.data) return [];
+
+    return data.data.map((project: any) => ({
+      id: project._id,
+
+      name: project.name,
+
+      projectNumber: project.contractProjectId
+        ? `#${project.contractProjectId}`
+        : `#${project._id.slice(-4)}`,
+
+      location: project.location,
+
+      category: project.category,
+
+      price: Number(((project.climateScore || 80) / 4).toFixed(2)),
+
+      score: project.climateScore,
+
+      image:
+        project.imageUrl ||
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+
+      description: project.description,
+
+      verified: project.verified,
+
+      developer: project.developer,
+
+      availableCredits: project.availableCredits || 0,
+    }));
+  }, [data]);
 
   // Live updates simulator
   useEffect(() => {
@@ -108,7 +147,7 @@ export default function Marketplace() {
     // Filter by Category
     if (selectedCategory !== "All") {
       result = result.filter(
-        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase()
+        (p) => p.category.toLowerCase() === selectedCategory.toLowerCase(),
       );
     }
 
@@ -119,7 +158,7 @@ export default function Marketplace() {
         (p) =>
           p.name.toLowerCase().includes(q) ||
           p.location.toLowerCase().includes(q) ||
-          p.projectNumber.toLowerCase().includes(q)
+          p.projectNumber.toLowerCase().includes(q),
       );
     }
 
@@ -135,7 +174,10 @@ export default function Marketplace() {
     return result;
   }, [projects, selectedCategory, searchQuery, sortBy]);
 
-  const categories = ["All", "Forestry", "Energy", "Ocean", "Tech"];
+  const categories = [
+    "All",
+    ...Array.from(new Set(projects.map((project) => project.category))),
+  ];
 
   const handleBuyClick = (project: Project) => {
     setSelectedProject(project);
@@ -155,7 +197,11 @@ export default function Marketplace() {
       setTimeout(() => {
         setTxState("success");
         // Generate mock transaction hash
-        const hash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+        const hash =
+          "0x" +
+          Array.from({ length: 40 }, () =>
+            Math.floor(Math.random() * 16).toString(16),
+          ).join("");
         setTxHash(hash);
 
         // Update local stats based on the purchase size
@@ -166,9 +212,27 @@ export default function Marketplace() {
   };
 
   // Calculations for purchase
-  const purchaseCost = selectedProject ? selectedProject.price * purchaseTons : 0;
+  const purchaseCost = selectedProject
+    ? selectedProject.price * purchaseTons
+    : 0;
   const protocolFee = purchaseCost * 0.01; // 1% fee
   const totalCost = purchaseCost + protocolFee;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading marketplace...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500">
+        Failed to load projects
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 w-full bg-surface-container-lowest text-on-surface">
@@ -188,10 +252,14 @@ export default function Marketplace() {
               </span>
             </div>
             <h1 className="font-headline-xl text-4xl sm:text-5xl lg:text-6xl max-w-xl leading-[1.1] font-extrabold tracking-tight">
-              Turn Real <span className="brand-text-gradient">Climate Action</span> Into Digital Carbon Assets
+              Turn Real{" "}
+              <span className="brand-text-gradient">Climate Action</span> Into
+              Digital Carbon Assets
             </h1>
             <p className="font-body-lg text-lg text-text-secondary max-w-lg leading-relaxed">
-              Accelerate global net-zero goals through a high-integrity, transparent marketplace for tokenized carbon removals and biodiversity credits.
+              Accelerate global net-zero goals through a high-integrity,
+              transparent marketplace for tokenized carbon removals and
+              biodiversity credits.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <a
@@ -216,9 +284,13 @@ export default function Marketplace() {
               />
               <div className="p-8 space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-label-sm text-xs text-text-secondary">Global Impact Tracker</span>
+                  <span className="font-label-sm text-xs text-text-secondary">
+                    Global Impact Tracker
+                  </span>
                   <span className="font-label-sm text-xs text-secondary font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">trending_up</span>
+                    <span className="material-symbols-outlined text-sm">
+                      trending_up
+                    </span>
                     +12.4% vs Last Mo
                   </span>
                 </div>
@@ -242,23 +314,33 @@ export default function Marketplace() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="space-y-1">
-              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">Total Credits Issued</p>
+              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">
+                Total Credits Issued
+              </p>
               <h3 className="font-headline-md text-2xl font-bold text-primary">
                 {(liveCreditsIssued / 1000000).toFixed(4)}M TCO2e
               </h3>
             </div>
             <div className="space-y-1">
-              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">Credits Retired</p>
+              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">
+                Credits Retired
+              </p>
               <h3 className="font-headline-md text-2xl font-bold text-secondary">
                 {(liveCreditsRetired / 1000000).toFixed(4)}M TCO2e
               </h3>
             </div>
             <div className="space-y-1">
-              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">Active Projects</p>
-              <h3 className="font-headline-md text-2xl font-bold text-text-primary">142 Projects</h3>
+              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">
+                Active Projects
+              </p>
+              <h3 className="font-headline-md text-2xl font-bold text-text-primary">
+                142 Projects
+              </h3>
             </div>
             <div className="space-y-1">
-              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">Carbon Reduced</p>
+              <p className="font-label-sm text-xs text-text-secondary uppercase font-semibold">
+                Carbon Reduced
+              </p>
               <h3 className="font-headline-md text-2xl font-bold text-tertiary">
                 {(liveCarbonReduced / 1000000000).toFixed(4)}B Tons
               </h3>
@@ -268,12 +350,18 @@ export default function Marketplace() {
       </section>
 
       {/* Projects Catalog */}
-      <section id="projects-catalog" className="py-24 px-6 lg:px-8 max-w-7xl mx-auto">
+      <section
+        id="projects-catalog"
+        className="py-24 px-6 lg:px-8 max-w-7xl mx-auto"
+      >
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 mb-12">
           <div className="space-y-4">
-            <h2 className="font-headline-lg text-3xl font-bold text-white">Carbon Projects Marketplace</h2>
+            <h2 className="font-headline-lg text-3xl font-bold text-white">
+              Carbon Projects Marketplace
+            </h2>
             <p className="font-body-md text-sm text-text-secondary max-w-xl">
-              Discover institutional-grade carbon offsets verified by satellite monitoring, AI analysis, and third-party validation registries.
+              Discover institutional-grade carbon offsets verified by satellite
+              monitoring, AI analysis, and third-party validation registries.
             </p>
           </div>
 
@@ -341,9 +429,12 @@ export default function Marketplace() {
             <span className="material-symbols-outlined text-[48px] text-text-secondary mb-4">
               search_off
             </span>
-            <h3 className="text-lg font-bold text-white mb-1">No Projects Found</h3>
+            <h3 className="text-lg font-bold text-white mb-1">
+              No Projects Found
+            </h3>
             <p className="text-sm text-text-secondary">
-              Try adjusting your filters or search query to find carbon offset credits.
+              Try adjusting your filters or search query to find carbon offset
+              credits.
             </p>
           </div>
         ) : (
@@ -387,11 +478,23 @@ export default function Marketplace() {
                         {project.name}
                       </h4>
                       <p className="text-xs text-text-secondary">
-                        Project {project.projectNumber} • {project.location}
+                        Project {project.projectNumber}
+                      </p>
+
+                      <p className="text-xs text-text-secondary">
+                        {project.location}
+                      </p>
+
+                      <p className="text-xs text-secondary font-semibold">
+                        {project.availableCredits.toLocaleString()} Credits
+                        Available
                       </p>
                     </div>
                     <p className="text-xs text-text-secondary leading-relaxed line-clamp-2">
                       {project.description}
+                    </p>
+                    <p className="text-xs text-primary">
+                      Developer: {project.developer}
                     </p>
                   </div>
                 </div>
@@ -399,14 +502,20 @@ export default function Marketplace() {
                 <div className="p-5 pt-0 space-y-4">
                   <div className="flex justify-between items-center py-3 border-y border-border-slate">
                     <div className="space-y-0.5">
-                      <p className="text-[10px] text-text-secondary uppercase font-semibold">Price</p>
+                      <p className="text-[10px] text-text-secondary uppercase font-semibold">
+                        Price
+                      </p>
                       <p className="font-label-md text-base text-text-primary font-bold">
                         ${project.price.toFixed(2)}{" "}
-                        <span className="text-text-secondary font-normal text-xs">/ Ton</span>
+                        <span className="text-text-secondary font-normal text-xs">
+                          / Ton
+                        </span>
                       </p>
                     </div>
                     <div className="text-right space-y-0.5">
-                      <p className="text-[10px] text-text-secondary uppercase font-semibold">Climate Score</p>
+                      <p className="text-[10px] text-text-secondary uppercase font-semibold">
+                        Climate Score
+                      </p>
                       <div className="px-2 py-0.5 rounded-full border border-secondary/35 text-secondary text-xs font-bold bg-secondary/5">
                         {project.score}/100
                       </div>
@@ -445,7 +554,9 @@ export default function Marketplace() {
                   Ready to Offset Your Footprint?
                 </h2>
                 <p className="font-body-lg text-base sm:text-lg text-on-primary/80 max-w-md leading-relaxed">
-                  Join over 500+ enterprises and thousands of individuals using CarbonX to manage and retire their environmental footprint assets.
+                  Join over 500+ enterprises and thousands of individuals using
+                  CarbonX to manage and retire their environmental footprint
+                  assets.
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                   <a
@@ -464,9 +575,13 @@ export default function Marketplace() {
                   <div className="space-y-6">
                     <div className="flex justify-between items-center">
                       <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center shadow-lg shadow-secondary/20">
-                        <span className="material-symbols-outlined text-on-secondary">eco</span>
+                        <span className="material-symbols-outlined text-on-secondary">
+                          eco
+                        </span>
                       </div>
-                      <span className="text-on-primary font-bold text-sm tracking-wide">Registry Verified</span>
+                      <span className="text-on-primary font-bold text-sm tracking-wide">
+                        Registry Verified
+                      </span>
                     </div>
                     <div className="space-y-3">
                       <div className="h-2 w-full bg-on-primary/20 rounded-full overflow-hidden">
@@ -480,7 +595,8 @@ export default function Marketplace() {
                       </div>
                     </div>
                     <p className="text-on-primary/60 text-xs italic leading-relaxed">
-                      &ldquo;CarbonX provides the most granular data overlays for our compliance and ESG disclosure requirements.&rdquo;
+                      &ldquo;CarbonX provides the most granular data overlays
+                      for our compliance and ESG disclosure requirements.&rdquo;
                     </p>
                   </div>
                 </div>
@@ -517,7 +633,9 @@ export default function Marketplace() {
               {/* Header */}
               <div className="flex justify-between items-center px-6 py-4 border-b border-border-slate">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary text-xl">shopping_cart</span>
+                  <span className="material-symbols-outlined text-primary text-xl">
+                    shopping_cart
+                  </span>
                   Purchase Carbon Credits
                 </h3>
                 {(txState === "idle" || txState === "success") && (
@@ -542,9 +660,12 @@ export default function Marketplace() {
                       />
                     </div>
                     <div className="flex flex-col justify-center min-w-0">
-                      <h4 className="text-sm font-bold text-white truncate">{selectedProject.name}</h4>
+                      <h4 className="text-sm font-bold text-white truncate">
+                        {selectedProject.name}
+                      </h4>
                       <p className="text-xs text-text-secondary truncate">
-                        {selectedProject.location} • Price: ${selectedProject.price.toFixed(2)}/Ton
+                        {selectedProject.location} • Price: $
+                        {selectedProject.price.toFixed(2)}/Ton
                       </p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="px-2 py-0.5 text-[9px] uppercase font-bold text-secondary border border-secondary/35 rounded-full bg-secondary/5">
@@ -565,7 +686,11 @@ export default function Marketplace() {
                         min="1"
                         max="10000"
                         value={purchaseTons}
-                        onChange={(e) => setPurchaseTons(Math.max(1, parseInt(e.target.value) || 0))}
+                        onChange={(e) =>
+                          setPurchaseTons(
+                            Math.max(1, parseInt(e.target.value) || 0),
+                          )
+                        }
                         className="w-full px-4 py-3 bg-surface-container border border-border-slate rounded-xl text-sm focus:outline-none focus:border-primary text-white font-semibold"
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-text-secondary">
@@ -573,24 +698,44 @@ export default function Marketplace() {
                       </span>
                     </div>
                     <p className="text-[11px] text-text-secondary leading-relaxed">
-                      Each credit represents 1 metric ton of CO2 offset verified by satellite carbon mapping.
+                      Each credit represents 1 metric ton of CO2 offset verified
+                      by satellite carbon mapping.
                     </p>
                   </div>
 
                   {/* Pricing Breakdown */}
                   <div className="p-4 bg-surface-container-lowest/50 border border-border-slate rounded-xl space-y-2.5">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-text-secondary">Credits Cost ({purchaseTons} Tons)</span>
-                      <span className="font-semibold text-white">${purchaseCost.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-text-secondary">
+                        Credits Cost ({purchaseTons} Tons)
+                      </span>
+                      <span className="font-semibold text-white">
+                        $
+                        {purchaseCost.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-xs">
-                      <span className="text-text-secondary">Registry Protocol Fee (1%)</span>
-                      <span className="font-semibold text-white">${protocolFee.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-text-secondary">
+                        Registry Protocol Fee (1%)
+                      </span>
+                      <span className="font-semibold text-white">
+                        $
+                        {protocolFee.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
                     </div>
                     <div className="h-px bg-border-slate my-1"></div>
                     <div className="flex justify-between items-center text-sm font-bold">
                       <span className="text-primary">Total Est. Cost</span>
-                      <span className="text-white">${totalCost.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-white">
+                        $
+                        {totalCost.toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </span>
                     </div>
                   </div>
 
@@ -615,7 +760,9 @@ export default function Marketplace() {
 
                   <div className="space-y-2 max-w-xs mx-auto">
                     <h4 className="text-base font-bold text-white">
-                      {txState === "submitting" ? "Initiating Order Transaction" : "Verifying Carbon Registry"}
+                      {txState === "submitting"
+                        ? "Initiating Order Transaction"
+                        : "Verifying Carbon Registry"}
                     </h4>
                     <p className="text-xs text-text-secondary leading-relaxed">
                       {txState === "submitting"
@@ -630,31 +777,59 @@ export default function Marketplace() {
                 <div className="p-8 text-center space-y-6 flex-grow">
                   {/* Success Indicator */}
                   <div className="mx-auto h-16 w-16 bg-secondary/15 rounded-full flex items-center justify-center border border-secondary/35 text-secondary shadow-[0_0_15px_rgba(74,225,118,0.2)]">
-                    <span className="material-symbols-outlined text-[32px]">check_circle</span>
+                    <span className="material-symbols-outlined text-[32px]">
+                      check_circle
+                    </span>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-lg font-bold text-white">Purchase Confirmed!</h4>
+                    <h4 className="text-lg font-bold text-white">
+                      Purchase Confirmed!
+                    </h4>
                     <p className="text-xs text-text-secondary max-w-sm mx-auto leading-relaxed">
-                      You have successfully purchased and retired <span className="text-secondary font-bold">{purchaseTons} Tons</span> of carbon offsets. An immutable certificate of retirement has been minted to your address.
+                      You have successfully purchased and retired{" "}
+                      <span className="text-secondary font-bold">
+                        {purchaseTons} Tons
+                      </span>{" "}
+                      of carbon offsets. An immutable certificate of retirement
+                      has been minted to your address.
                     </p>
                   </div>
 
                   {/* Tx Details */}
                   <div className="p-4 bg-surface-container/50 border border-border-slate rounded-xl text-left space-y-2">
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-text-secondary font-semibold uppercase">Tx Hash</span>
-                      <span className="font-mono text-primary select-all max-w-[180px] truncate">{txHash}</span>
+                      <span className="text-text-secondary font-semibold uppercase">
+                        Tx Hash
+                      </span>
+                      <span className="font-mono text-primary select-all max-w-[180px] truncate">
+                        {txHash}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-text-secondary font-semibold uppercase">Credits Retired</span>
-                      <span className="text-white font-bold">{purchaseTons} Tons CO2e</span>
+                      <span className="text-text-secondary font-semibold uppercase">
+                        Credits Retired
+                      </span>
+                      <span className="text-white font-bold">
+                        {purchaseTons} Tons CO2e
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-text-secondary font-semibold uppercase">Registry Registry</span>
-                      <span className="text-secondary font-bold flex items-center gap-0.5">
-                        <span className="material-symbols-outlined text-xs">verified</span>
-                        Verra V2 Verified
+                      <span className="text-text-secondary font-semibold uppercase">
+                        Registry Registry
+                      </span>
+                      <span
+                        className={`${
+                          selectedProject?.verified
+                            ? "text-secondary"
+                            : "text-yellow-400"
+                        } font-bold flex items-center gap-0.5`}
+                      >
+                        <span className="material-symbols-outlined text-xs">
+                          verified
+                        </span>
+
+                        {selectedProject?.verified ? "Verified" : "Pending"}
                       </span>
                     </div>
                   </div>

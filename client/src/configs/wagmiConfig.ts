@@ -4,7 +4,7 @@ import { mainnet, sepolia } from "wagmi/chains";
 
 export const config = getDefaultConfig({
   appName: "CarbonX",
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "00000000000000000000000000000000",
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
   chains: [mainnet, sepolia],
   ssr: true,
 });

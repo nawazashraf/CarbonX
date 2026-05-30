@@ -7,11 +7,17 @@ import marketplaceRoutes from "./modules/Marketplace/marketplace.routes.js";
 import retirementRoutes from "./modules/Retirement/retirement.routes.js";
 import analyticsRoutes from "./modules/Analytics/analytics.routes.js";
 
-
+import cors from "cors";
 
 const app = express();
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use(
     "/api/projects",
