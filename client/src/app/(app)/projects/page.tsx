@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ProjectItem {
@@ -52,6 +53,7 @@ const INITIAL_PROJECTS: ProjectItem[] = [
 ];
 
 export default function ProjectsDashboard() {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectItem[]>(INITIAL_PROJECTS);
   const [selectedFilter, setSelectedFilter] = useState<"all" | "approved" | "pending" | "draft">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -272,7 +274,7 @@ export default function ProjectsDashboard() {
               </div>
 
               <button
-                onClick={() => setIsSubmitModalOpen(true)}
+                onClick={() => router.push("/projects/new")}
                 className="bg-primary text-on-primary-container font-extrabold text-xs px-5 py-3 rounded-xl hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-primary/10 ml-auto md:ml-0"
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>
@@ -395,7 +397,7 @@ export default function ProjectsDashboard() {
 
               {/* Upload Zone / CTA Card */}
               <div
-                onClick={() => setIsSubmitModalOpen(true)}
+                onClick={() => router.push("/projects/new")}
                 className="bg-surface-container-low border-2 border-dashed border-[#2A2A2A] rounded-2xl flex flex-col items-center justify-center p-8 hover:border-primary transition-colors cursor-pointer group"
               >
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-primary">
