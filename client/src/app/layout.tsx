@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 import { Web3Provider } from "@/providers/WebProviders";
+import QueryProvider from "@/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,7 +45,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-surface-container-lowest text-on-surface">
-        <Web3Provider>{children}</Web3Provider>
+        <QueryProvider>
+          <Web3Provider>{children}</Web3Provider>
+        </QueryProvider>
       </body>
     </html>
   );

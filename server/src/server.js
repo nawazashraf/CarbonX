@@ -1,4 +1,7 @@
 import app from "./app.js";
+import connectDB from "./config/db.js";
+
+connectDB();
 
 app.get("/health", (req, res) => {
   res.json({
@@ -6,6 +9,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.listen(3000, () => {
+app.listen(5000, () => {
   console.log("Server started at Port 3000");
 });
