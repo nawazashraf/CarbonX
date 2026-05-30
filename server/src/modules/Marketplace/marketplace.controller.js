@@ -2,6 +2,8 @@ import {
   createListingService,
   getListingsService,
   buyCreditsService,
+  syncListingService,
+  getMyListingsService,
 } from "./marketplace.service.js";
 
 export const createListing = async (req, res) => {
@@ -52,6 +54,22 @@ export const syncListing = async (req, res) => {
     res.status(201).json({
       success: true,
       data: listing,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getMyListings = async (req, res) => {
+  try {
+    const listings = await getMyListingsService(req.params.wallet);
+
+    res.status(200).json({
+      success: true,
+      data: listings,
     });
   } catch (error) {
     res.status(400).json({

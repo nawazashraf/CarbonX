@@ -7,6 +7,7 @@ import marketplaceRoutes from "./modules/Marketplace/marketplace.routes.js";
 import retirementRoutes from "./modules/Retirement/retirement.routes.js";
 import analyticsRoutes from "./modules/Analytics/analytics.routes.js";
 import transactionRoutes from "./modules/Transaction/index.js";
+import dashboardRoutes from "./modules/Dashboard/dashboard.routes.js";
 
 import cors from "cors";
 
@@ -17,48 +18,23 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
-  })
+  }),
 );
 
-app.use(
-    "/api/projects",
-    projectModule
-);
+app.use("/api/projects", projectModule);
 
-app.use(
-    "/api/verifications",
-    verificationModule
-);
+app.use("/api/verifications", verificationModule);
 
-app.use(
-    "/api/credits",
-    creditsRoutes
-);
+app.use("/api/credits", creditsRoutes);
 
+app.use("/api/marketplace", marketplaceRoutes);
 
-app.use(
-    "/api/marketplace",
-    marketplaceRoutes
-);
+app.use("/api/retirements", retirementRoutes);
 
+app.use("/api/analytics", analyticsRoutes);
 
-app.use(
-    "/api/retirements",
-    retirementRoutes
-);
+app.use("/api/transactions", transactionRoutes);
 
-
-app.use(
-    "/api/analytics",
-    analyticsRoutes
-);
-
-
-
-
-app.use(
-  "/api/transactions",
-  transactionRoutes
-);
+app.use("/api/dashboard", dashboardRoutes);
 
 export default app;
