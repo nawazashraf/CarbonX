@@ -31,12 +31,6 @@ export const createTransaction = async (data) => {
   listing.status = "sold";
   await listing.save();
 
-  await Project.findByIdAndUpdate(listing.project._id, {
-    $inc: {
-      availableCredits: -listing.creditsListed,
-    },
-  });
-
   return transaction;
 };
 

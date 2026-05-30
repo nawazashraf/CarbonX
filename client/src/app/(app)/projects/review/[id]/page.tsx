@@ -4,6 +4,11 @@ import React, { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { useAccount, useWriteContract } from "wagmi";
+import { waitForTransactionReceipt } from "@wagmi/core";
+import { config } from "@/configs/wagmiConfig";
+import { CARBON_TOKEN_ADDRESS } from "@/lib/contract";
+import { carbonAbi } from "@/lib/abis/carbonAbi";
 import { getProject } from "@/api/projects";
 import { useVerifyProject } from "@/hooks/verification/useVerifyProject";
 
@@ -26,17 +31,28 @@ export default function ConductAuditPage({ params }: PageProps) {
   const [remarks, setRemarks] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
   const verifyMutation = useVerifyProject();
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 4000);
   };
 
   const handleVerifySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!address) {
+      showToast("Please connect your Web3 wallet first.");
+      return;
+    }
+    if (!project) return;
+    if (!project.contractProjectId) {
+      showToast("Error: This project is missing a contract registry ID on-chain.");
+      return;
+    }
     if (!approvedCredits || Number(approvedCredits) <= 0) {
       showToast("Please enter a valid credit approval amount.");
       return;
@@ -47,19 +63,36 @@ export default function ConductAuditPage({ params }: PageProps) {
     }
 
     try {
+      showToast("Step 1/2: Publishing verification & mint signature on-chain...");
+      const txHash = await writeContractAsync({
+        address: CARBON_TOKEN_ADDRESS,
+        abi: carbonAbi,
+        functionName: "verifyProject",
+        args: [BigInt(project.contractProjectId), BigInt(approvedCredits)],
+      });
+
+      showToast("Step 2/2: Confirming blockchain transaction...");
+      const receipt = await waitForTransactionReceipt(config, {
+        hash: txHash,
+      });
+
+      showToast("Syncing with carbon registry database...");
       await verifyMutation.mutateAsync({
         id,
         payload: {
           approvedCredits: Number(approvedCredits),
           remarks,
+          verifierWallet: address.toLowerCase(),
+          txHash: receipt.transactionHash,
         },
       });
+
       showToast("Project successfully verified and registry logs updated.");
       setTimeout(() => {
         router.push("/projects/review");
       }, 1500);
     } catch (err: any) {
-      showToast(err?.response?.data?.message || "Failed to submit verification audit.");
+      showToast(err?.message || err?.response?.data?.message || "Failed to submit verification audit.");
     }
   };
 

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useWriteContract } from "wagmi";
 
-import { waitForTransactionReceipt } from "@wagmi/core";
+import { waitForTransactionReceipt, readContract } from "@wagmi/core";
 
 import { config } from "@/configs/wagmiConfig";
 
@@ -20,13 +20,20 @@ export const useBuyCredits = () => {
 
   return useMutation({
     mutationFn: async (listing: any) => {
-      const totalPrice = listing.pricePerCredit * listing.creditsListed;
+      // Query listing details from contract to get the exact stored price in USDC (6 decimals)
+      const contractListing = await readContract(config, {
+        address: MARKETPLACE_ADDRESS,
+        abi: marketplaceAbi,
+        functionName: "listings",
+        args: [BigInt(listing.contractListingId)],
+      });
+      const contractPrice = contractListing[3]; // Struct index 3 is price
 
       const approveHash = await writeContractAsync({
         address: USDC_ADDRESS,
         abi: usdcAbi,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, BigInt(Math.round(totalPrice * 1e6))],
+        args: [MARKETPLACE_ADDRESS, contractPrice],
       });
 
       await waitForTransactionReceipt(config, {

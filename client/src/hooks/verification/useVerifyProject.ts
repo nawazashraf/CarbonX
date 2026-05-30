@@ -12,7 +12,7 @@ export const useVerifyProject = () => {
       payload,
     }: {
       id: string;
-      payload: { approvedCredits: number; remarks: string; verifierWallet?: string };
+      payload: { approvedCredits: number; remarks: string; verifierWallet?: string; txHash?: string };
     }) => {
       if (!address) {
         throw new Error("Please connect your Web3 wallet first.");

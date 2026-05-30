@@ -127,6 +127,10 @@ export default function Marketplace() {
       showToast("Please connect your Web3 wallet first.");
       return;
     }
+    if (listing.sellerWallet.toLowerCase() === address.toLowerCase()) {
+      showToast("You cannot purchase your own listed credits. Please switch to a different wallet.");
+      return;
+    }
     setSelectedListing(listing);
     setTxState("idle");
   };
