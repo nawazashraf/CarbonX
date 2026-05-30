@@ -6,6 +6,7 @@ import creditsRoutes from "./modules/Credits/credits.routes.js";
 import marketplaceRoutes from "./modules/Marketplace/marketplace.routes.js";
 import retirementRoutes from "./modules/Retirement/retirement.routes.js";
 import analyticsRoutes from "./modules/Analytics/analytics.routes.js";
+import transactionRoutes from "./modules/transaction/index.js";
 
 import cors from "cors";
 
@@ -52,5 +53,12 @@ app.use(
     analyticsRoutes
 );
 
+
+
+
+app.use(
+  "/api/transactions",
+  transactionRoutes
+);
 
 export default app;
