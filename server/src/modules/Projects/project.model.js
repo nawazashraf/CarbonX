@@ -1,12 +1,16 @@
 import mongoose from "mongoose";
 
-const projectSchema = new mongoose.Schema({
-
-    contractProjectId: Number,
+const projectSchema = new mongoose.Schema(
+{
+    contractProjectId: {
+        type: Number,
+        default: null
+    },
 
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
 
     description: {
@@ -26,10 +30,14 @@ const projectSchema = new mongoose.Schema({
             "Energy",
             "Ocean",
             "Tech"
-        ]
+        ],
+        required: true
     },
 
-    developer: String,
+    developer: {
+        type: String,
+        required: true
+    },
 
     imageUrl: String,
 
@@ -37,10 +45,14 @@ const projectSchema = new mongoose.Schema({
 
     ownerWallet: {
         type: String,
-        required: true
+        required: true,
+        lowercase: true
     },
 
-    creditsRequested: Number,
+    creditsRequested: {
+        type: Number,
+        required: true
+    },
 
     creditsApproved: {
         type: Number,
@@ -62,7 +74,10 @@ const projectSchema = new mongoose.Schema({
         default: false
     }
 
-}, { timestamps: true });
+},
+{
+    timestamps: true
+});
 
 export default mongoose.model(
     "Project",
