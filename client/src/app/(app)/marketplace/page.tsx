@@ -3,6 +3,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAccount, useSendTransaction } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { parseEther } from "viem";
 
 interface Project {
   id: string;
@@ -74,6 +77,19 @@ const INITIAL_PROJECTS: Project[] = [
 ];
 
 export default function Marketplace() {
+  const { isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const { sendTransactionAsync } = useSendTransaction();
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
+
   const [projects] = useState<Project[]>(INITIAL_PROJECTS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -144,23 +160,59 @@ export default function Marketplace() {
     setTxHash("");
   };
 
-  const handleConfirmPurchase = () => {
-    setTxState("submitting");
+  const handleConfirmPurchase = async () => {
+    if (!isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      } else {
+        showToast("Please connect your wallet first");
+      }
+      return;
+    }
 
-    // Phase 1: Initiating transaction
-    setTimeout(() => {
+    try {
+      setTxState("submitting");
+
+      // We send 0.0001 ETH per ton of carbon credit to a mock Carbon Credit Vault
+      const ethAmount = (purchaseTons * 0.0001).toFixed(4);
+      const tx = await sendTransactionAsync({
+        to: "0x71C7656EC7ab88b098defB751B7401B5f6d1476B", // Dummy Carbon Vault Address
+        value: parseEther(ethAmount),
+      });
+
       setTxState("confirming");
+      setTxHash(tx);
 
-      // Phase 2: Verifying blockchain registry and updating stats
+      // Verifying blockchain registry and updating stats
       setTimeout(() => {
         setTxState("success");
-        // Generate mock transaction hash
-        const hash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-        setTxHash(hash);
-
         // Update local stats based on the purchase size
         setLiveCreditsRetired((prev) => prev + purchaseTons);
         setLiveCarbonReduced((prev) => prev + purchaseTons * 1000); // 1 credit ≈ 1000kg/1 Ton
+      }, 2000);
+
+    } catch (err: any) {
+      console.error(err);
+      setTxState("idle");
+      if (err.message?.includes("rejected") || err.message?.includes("User denied")) {
+        showToast("Transaction was rejected by user.");
+      } else {
+        showToast("Transaction failed: " + (err.shortMessage || err.message || "Unknown error"));
+      }
+    }
+  };
+
+  const handleMockPurchase = () => {
+    setTxState("submitting");
+    showToast("Bypassing wallet: executing simulated transaction...");
+    setTimeout(() => {
+      setTxState("confirming");
+      setTimeout(() => {
+        setTxState("success");
+        const hash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+        setTxHash(hash);
+        setLiveCreditsRetired((prev) => prev + purchaseTons);
+        setLiveCarbonReduced((prev) => prev + purchaseTons * 1000);
       }, 2000);
     }, 1500);
   };
@@ -171,7 +223,23 @@ export default function Marketplace() {
   const totalCost = purchaseCost + protocolFee;
 
   return (
-    <div className="flex-1 w-full bg-surface-container-lowest text-on-surface">
+    <div className="flex-1 w-full bg-surface-container-lowest text-on-surface relative">
+      {/* Toast Alert */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[#1D1F27] border border-success/35 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-success font-semibold text-sm"
+          >
+            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+              info
+            </span>
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Hero Section */}
       <section className="relative min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden px-6 lg:px-8 py-16 lg:py-24">
         <div className="absolute inset-0 z-0">
@@ -602,6 +670,17 @@ export default function Marketplace() {
                     <span className="material-symbols-outlined">payments</span>
                     Confirm Purchase & Retire Credits
                   </button>
+
+                  {/* Fallback Option */}
+                  <div className="text-center mt-2.5">
+                    <button
+                      type="button"
+                      onClick={handleMockPurchase}
+                      className="text-xs text-text-secondary hover:text-white transition-colors underline cursor-pointer"
+                    >
+                      Bypass Wallet (Simulate Offline Purchase)
+                    </button>
+                  </div>
                 </div>
               )}
 
