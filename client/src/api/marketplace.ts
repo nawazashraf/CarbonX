@@ -1,15 +1,13 @@
-import axios from "axios";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { api } from "./axios";
 
 export const getListings = async () => {
-  const res = await axios.get(`${API}/marketplace`);
-  return res.data.data;
+  const res = await api.get("/marketplace");
+  return res.data.data || res.data;
 };
 
 export const getMyListings = async (wallet: string) => {
-  const res = await axios.get(`${API}/marketplace/my-listings/${wallet}`);
-  return res.data.data;
+  const res = await api.get(`/marketplace/my-listings/${wallet}`);
+  return res.data.data || res.data;
 };
 
 export const syncListing = async (payload: {
@@ -20,13 +18,13 @@ export const syncListing = async (payload: {
   creditsListed: number;
   pricePerCredit: number;
 }) => {
-  const res = await axios.post(`${API}/marketplace/sync`, payload);
-  return res.data.data;
+  const res = await api.post("/marketplace/sync", payload);
+  return res.data.data || res.data;
 };
 
 export const buyListing = async (listingId: string) => {
-  const res = await axios.post(`${API}/marketplace/buy/${listingId}`);
-  return res.data.data;
+  const res = await api.post(`/marketplace/buy/${listingId}`);
+  return res.data.data || res.data;
 };
 
 export const marketplaceService = {

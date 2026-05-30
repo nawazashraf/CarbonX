@@ -1,32 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
-import axios from "axios";
-
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { useDashboard } from "@/hooks/dashboard/useDashboard";
+import { useMarketplace } from "@/hooks/marketplace/useMarketplace";
 
 export default function DashboardPage() {
   const { address } = useAccount();
 
-  const { data: dashboard, isLoading } = useQuery({
-    queryKey: ["dashboard", address],
-    queryFn: async () => {
-      const res = await axios.get(`${API}/dashboard/${address}`);
-
-      return res.data;
-    },
-    enabled: !!address,
-  });
-
-  const { data: marketplace } = useQuery({
-    queryKey: ["marketplace"],
-    queryFn: async () => {
-      const res = await axios.get(`${API}/marketplace`);
-
-      return res.data.data;
-    },
-  });
+  const { data: dashboard, isLoading } = useDashboard(address);
+  const { data: marketplace } = useMarketplace();
 
   if (!address) {
     return <div className="p-10">Connect Wallet</div>;

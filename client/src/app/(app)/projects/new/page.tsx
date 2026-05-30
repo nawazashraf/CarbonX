@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 import { useAccount } from "wagmi";
 import { useCreateProject } from "@/hooks/projects/useCreateProject";
 
