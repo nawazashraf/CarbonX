@@ -44,4 +44,8 @@ const marketplaceSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model("Marketplace", marketplaceSchema);
+const Marketplace =
+  mongoose.models.Marketplace ||
+  mongoose.model("Marketplace", marketplaceSchema);
+
+export default Marketplace;
