@@ -4,6 +4,8 @@ import projectModule from "./modules/Projects/index.js";
 import verificationModule from "./modules/verification/index.js";
 import creditsRoutes from "./modules/Credits/credits.routes.js";
 import marketplaceRoutes from "./modules/Marketplace/marketplace.routes.js";
+import retirementRoutes from "./modules/Retirement/retirement.routes.js";
+
 
 const app = express();
 
@@ -14,12 +16,10 @@ app.use(
     projectModule
 );
 
-
 app.use(
     "/api/verifications",
     verificationModule
 );
-
 
 app.use(
     "/api/credits",
@@ -27,10 +27,15 @@ app.use(
 );
 
 
-
 app.use(
     "/api/marketplace",
     marketplaceRoutes
+);
+
+
+app.use(
+    "/api/retirements",
+    retirementRoutes
 );
 
 export default app;
