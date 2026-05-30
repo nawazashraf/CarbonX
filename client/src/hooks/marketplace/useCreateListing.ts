@@ -33,7 +33,10 @@ export const useCreateListing = () => {
         address: CARBON_TOKEN_ADDRESS,
         abi: carbonAbi,
         functionName: "approve",
-        args: [MARKETPLACE_ADDRESS, BigInt(creditsListed) * BigInt("1000000000000000000")],
+        args: [
+          MARKETPLACE_ADDRESS,
+          BigInt(creditsListed) * BigInt("1000000000000000000"),
+        ],
       });
 
       await waitForTransactionReceipt(config, {
@@ -58,6 +61,7 @@ export const useCreateListing = () => {
       });
 
       const contractListingId = Number(count);
+      console.log("LIST TX HASH:", listHash);
 
       await syncListing({
         projectId,
@@ -75,6 +79,7 @@ export const useCreateListing = () => {
 
       return receipt;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["listings"],
@@ -85,4 +90,3 @@ export const useCreateListing = () => {
     },
   });
 };
-

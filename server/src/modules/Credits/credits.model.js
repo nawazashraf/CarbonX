@@ -1,43 +1,37 @@
 import mongoose from "mongoose";
 
 const creditSchema = new mongoose.Schema(
-{
+  {
     project: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Project",
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      required: true,
     },
 
     ownerWallet: {
-        type: String,
-        required: true,
-        lowercase: true
+      type: String,
+      required: true,
+      lowercase: true,
     },
 
     amount: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
 
     txHash: {
-        type: String,
-        required: true
+      type: String,
     },
 
     status: {
-        type: String,
-        enum: [
-            "completed",
-            "failed"
-        ],
-        default: "completed"
-    }
-},
-{
-    timestamps: true
-});
-
-export default mongoose.model(
-    "Credit",
-    creditSchema
+      type: String,
+      enum: ["completed", "failed"],
+      default: "completed",
+    },
+  },
+  {
+    timestamps: true,
+  },
 );
+
+export default mongoose.model("Credit", creditSchema);
