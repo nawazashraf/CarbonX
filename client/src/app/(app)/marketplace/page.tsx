@@ -4,6 +4,9 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useProjects } from "@/hooks/projects/useProjects";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAccount, useSendTransaction } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { parseEther } from "viem";
 
 interface Project {
   id: string;
@@ -20,60 +23,6 @@ interface Project {
   availableCredits: number;
 }
 
-// const INITIAL_PROJECTS: Project[] = [
-//   {
-//     id: "proj-1",
-//     name: "Amazon Basin Reforestation",
-//     projectNumber: "#4022",
-//     location: "Brazil",
-//     category: "Forestry",
-//     price: 24.5,
-//     score: 98,
-//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCmYck8zMT03Vz_euIoi1PRgoYdFKMhUoGMmkjdP_olcgkQvKU_MNyFmtlkUYictINVBi9pMWgw_pUZkxmlH6RZ744qQb0IybpApyWuW9441WlkdDLd4_zSvlFsPjsLWjbJiFQTl4ea7PCt0Ciw4j1L6b6g0ISAMjjT8CmG-NIm6RfESik3_7r-VzHdNdd0CU6W5-RjLNERwSMi2E7ZZ8rtV1R5tnG2G5Wmaq1Eia17eWHdtBAj60n3CCs7MffES5Lnmd-dAlkuInU",
-//     description: "Restoring native tree species across the Amazon Basin to secure carbon sinks and support indigenous communities.",
-//     verified: true,
-//     developer: "BioCarbon Brazil",
-//   },
-//   {
-//     id: "proj-2",
-//     name: "Sahara Solar Expansion",
-//     projectNumber: "#1289",
-//     location: "Morocco",
-//     category: "Energy",
-//     price: 18.9,
-//     score: 92,
-//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCRK2LV0NHYEdwHpzw_F6kr0BZntyjSLjuDr3P_UAopCPm-WNbDWQICeOMw3MthUxZSEX-DSTXhpmKZdNIFmpkWYoH-jKAFoQeS9TXF0RM_7LuL-5etL5qfbeBGdfsR2GcVCRbDzsQl1BBIeNr78hsgDiEEezmndgcXRP6f2Csm4UsnALfeapsloEZXZUE_1w1tsP2JmvVVcVE2zlECInRZF7H7MoXi83o2h73BBRMnf-SOK53H_VIlBmJRJQrs7NhjTK8apY4rbXU",
-//     description: "Harnessing solar power from the Sahara Desert to displace fossil fuel dependency in North Africa.",
-//     verified: true,
-//     developer: "Atlas Renewables",
-//   },
-//   {
-//     id: "proj-3",
-//     name: "Andean Carbon Sink",
-//     projectNumber: "#8831",
-//     location: "Peru",
-//     category: "Forestry",
-//     price: 32.0,
-//     score: 95,
-//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDhO6PVM1vsgvy-hhe2b9EC5J8m14I7UADf6zoUgQejZf04GHuQzVSYwqqip42bSUwWXqtZCE7bDQgJXExlG-iR7pwCX5zcKdp8ADMkMgveDlzCAKNzbAMCJf99Xj-fHMmR2seId0h26mmM3u9NGsUgwnvGfsO-HRe1Hz9Cdc7NQfOeUT1fTcyRb3WKQcG1kNunAyjMp92IMRSZO7t7fRlJCyIa8lKqTFJTjT-XAQf1O1rw8Oi47T9td62d09OwouuKH0cs60-w5Vw",
-//     description: "High-altitude mountain forestry conservation preventing soil erosion and enhancing regional carbon sequestration.",
-//     verified: true,
-//     developer: "Andes Conservation",
-//   },
-//   {
-//     id: "proj-4",
-//     name: "Direct Air Algae Capture",
-//     projectNumber: "#5521",
-//     location: "Iceland",
-//     category: "Tech",
-//     price: 120.0,
-//     score: 89,
-//     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDY2KLYhYENQo6KhTBWpAXA7q2InYGY95Xvmf81-MDT2sgcFPPtpel29K8ylPwx9JaVDU8VJF4Vrm6kkvPi21K2mRfcemwhIb65aXALCPGnXvzG7m3u3g00kp5iFCg2j0P7fimn7AQhARLLXJdaRtPKlPXWEykqv3OuCWbV6BrLr0haEZ7GWZEGrVMw20QGCcuontEX86kmrLSsDUuTXP1ZhbIsW5Uzk7cFYy1A-aptovom_9OGGGf2PwlW-YWjRrSKDajI7HHU_YU",
-//     description: "Utilizing modern laboratory bioreactors to cultivate high-density algae, securing long-term geological carbon storage.",
-//     verified: true,
-//     developer: "Sinc-Algae Tech",
-//   },
-// ];
 
 export default function Marketplace() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -186,14 +135,30 @@ export default function Marketplace() {
     setTxHash("");
   };
 
-  const handleConfirmPurchase = () => {
-    setTxState("submitting");
+  const handleConfirmPurchase = async () => {
+    if (!isConnected) {
+      if (openConnectModal) {
+        openConnectModal();
+      } else {
+        showToast("Please connect your wallet first");
+      }
+      return;
+    }
 
-    // Phase 1: Initiating transaction
-    setTimeout(() => {
+    try {
+      setTxState("submitting");
+
+      // We send 0.0001 ETH per ton of carbon credit to a mock Carbon Credit Vault
+      const ethAmount = (purchaseTons * 0.0001).toFixed(4);
+      const tx = await sendTransactionAsync({
+        to: "0x71C7656EC7ab88b098defB751B7401B5f6d1476B", // Dummy Carbon Vault Address
+        value: parseEther(ethAmount),
+      });
+
       setTxState("confirming");
+      setTxHash(tx);
 
-      // Phase 2: Verifying blockchain registry and updating stats
+      // Verifying blockchain registry and updating stats
       setTimeout(() => {
         setTxState("success");
         // Generate mock transaction hash
@@ -207,6 +172,30 @@ export default function Marketplace() {
         // Update local stats based on the purchase size
         setLiveCreditsRetired((prev) => prev + purchaseTons);
         setLiveCarbonReduced((prev) => prev + purchaseTons * 1000); // 1 credit ≈ 1000kg/1 Ton
+      }, 2000);
+
+    } catch (err: any) {
+      console.error(err);
+      setTxState("idle");
+      if (err.message?.includes("rejected") || err.message?.includes("User denied")) {
+        showToast("Transaction was rejected by user.");
+      } else {
+        showToast("Transaction failed: " + (err.shortMessage || err.message || "Unknown error"));
+      }
+    }
+  };
+
+  const handleMockPurchase = () => {
+    setTxState("submitting");
+    showToast("Bypassing wallet: executing simulated transaction...");
+    setTimeout(() => {
+      setTxState("confirming");
+      setTimeout(() => {
+        setTxState("success");
+        const hash = "0x" + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+        setTxHash(hash);
+        setLiveCreditsRetired((prev) => prev + purchaseTons);
+        setLiveCarbonReduced((prev) => prev + purchaseTons * 1000);
       }, 2000);
     }, 1500);
   };
@@ -235,7 +224,23 @@ export default function Marketplace() {
   }
 
   return (
-    <div className="flex-1 w-full bg-surface-container-lowest text-on-surface">
+    <div className="flex-1 w-full bg-surface-container-lowest text-on-surface relative">
+      {/* Toast Alert */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[#1D1F27] border border-success/35 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-success font-semibold text-sm"
+          >
+            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+              info
+            </span>
+            {toastMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Hero Section */}
       <section className="relative min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden px-6 lg:px-8 py-16 lg:py-24">
         <div className="absolute inset-0 z-0">
@@ -747,6 +752,17 @@ export default function Marketplace() {
                     <span className="material-symbols-outlined">payments</span>
                     Confirm Purchase & Retire Credits
                   </button>
+
+                  {/* Fallback Option */}
+                  <div className="text-center mt-2.5">
+                    <button
+                      type="button"
+                      onClick={handleMockPurchase}
+                      className="text-xs text-text-secondary hover:text-white transition-colors underline cursor-pointer"
+                    >
+                      Bypass Wallet (Simulate Offline Purchase)
+                    </button>
+                  </div>
                 </div>
               )}
 
