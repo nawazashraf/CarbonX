@@ -4,16 +4,44 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import WalletButton from "@/components/WalletButton";
 
-export default function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// function WalletButton() {
+//   return (
+//     <ConnectButton.Custom>
+//       {({
+//         account,
+//         chain,
+//         mounted,
+//         openAccountModal,
+//         openConnectModal,
+//       }) => {
+//         const connected = mounted && account && chain;
+
+//         return (
+//           <button
+//             onClick={
+//               connected
+//                 ? openAccountModal
+//                 : openConnectModal
+//             }
+//             className="brand-gradient px-6 py-2.5 rounded-xl font-label-md text-sm text-on-primary font-bold shadow-lg shadow-primary-container/20 hover:opacity-90 transition-all"
+//           >
+//             {connected
+//               ? account.displayName
+//               : "Connect Wallet"}
+//           </button>
+//         );
+//       }}
+//     </ConnectButton.Custom>
+//   );
+// }
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Monitor scroll for header background transparency change
@@ -28,16 +56,6 @@ export default function AppLayout({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const connectWallet = () => {
-    if (walletConnected) {
-      setWalletConnected(false);
-      setWalletAddress("");
-    } else {
-      setWalletConnected(true);
-      setWalletAddress("0x7F...C89B");
-    }
-  };
 
   const navItems = [
     { label: "Marketplace", href: "/marketplace" },
@@ -89,15 +107,7 @@ export default function AppLayout({
             <button className="material-symbols-outlined p-2 text-text-secondary hover:text-primary transition-all scale-95 active:scale-90 cursor-pointer">
               search
             </button>
-            <button
-              onClick={connectWallet}
-              className={`brand-gradient px-6 py-2.5 rounded-xl font-label-md text-sm text-on-primary font-bold shadow-lg shadow-primary-container/20 hover:opacity-90 transition-all scale-95 active:scale-90 cursor-pointer flex items-center gap-2`}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {walletConnected ? "account_balance_wallet" : "login"}
-              </span>
-              {walletConnected ? walletAddress : "Connect Wallet"}
-            </button>
+            <WalletButton />
 
             {/* Mobile Menu Button */}
             <button
@@ -127,7 +137,9 @@ export default function AppLayout({
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`font-label-md text-base transition-colors ${
-                        active ? "text-primary font-bold" : "text-text-secondary"
+                        active
+                          ? "text-primary font-bold"
+                          : "text-text-secondary"
                       }`}
                     >
                       {item.label}
@@ -141,20 +153,24 @@ export default function AppLayout({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-grow flex flex-col">{children}</main>
+      <main className="grow flex flex-col">{children}</main>
 
       {/* Footer */}
       <footer className="bg-surface-container-lowest border-t border-border-slate py-12">
         <div className="mx-auto max-w-7xl px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-col gap-4 text-center md:text-left">
-            <Link href="/" className="font-headline-md text-2xl font-bold text-primary">
+            <Link
+              href="/"
+              className="font-headline-md text-2xl font-bold text-primary"
+            >
               CarbonX
             </Link>
             <p className="font-body-md text-sm text-text-secondary max-w-xs">
               High-integrity carbon marketplace for the regenerative economy.
             </p>
             <p className="font-label-sm text-xs text-text-secondary opacity-80 mt-4">
-              © {new Date().getFullYear()} CarbonX Protocol. All rights reserved.
+              © {new Date().getFullYear()} CarbonX Protocol. All rights
+              reserved.
             </p>
           </div>
 
