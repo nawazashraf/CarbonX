@@ -1,9 +1,13 @@
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { mainnet, sepolia, baseSepolia } from "wagmi/chains";
+import { createConfig, http } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
+import { injected } from "wagmi/connectors";
 
-export const config = getDefaultConfig({
-  appName: "CarbonX",
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
+export const config = createConfig({
   chains: [baseSepolia],
-  ssr: true,
+  connectors: [
+    injected(),
+  ],
+  transports: {
+    [baseSepolia.id]: http(),
+  },
 });

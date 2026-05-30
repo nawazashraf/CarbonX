@@ -2,78 +2,65 @@ import Marketplace from "./marketplace.model.js";
 
 import Project from "../Projects/project.model.js";
 
-export const createListingService =
-async(data)=>{
+export const createListingService = async (data) => {
+  const project = await Project.findById(data.projectId);
 
-    const project =
-    await Project.findById(
-        data.projectId
-    );
+  if (!project) {
+    throw new Error("Project not found");
+  }
 
-    if(!project){
-        throw new Error(
-            "Project not found"
-        );
-    }
+  if (project.availableCredits < data.creditsListed) {
+    throw new Error("Insufficient credits");
+  }
 
-    if(
-        project.availableCredits <
-        data.creditsListed
-    ){
-        throw new Error(
-            "Insufficient credits"
-        );
-    }
+  project.availableCredits -= data.creditsListed;
 
-    project.availableCredits -=
-    data.creditsListed;
+  await project.save();
 
-    await project.save();
+  return Marketplace.create({
+    project: data.projectId,
 
-    return Marketplace.create({
+    sellerWallet: project.ownerWallet,
 
-        project:data.projectId,
+    creditsListed: data.creditsListed,
 
-        sellerWallet:
-        project.ownerWallet,
-
-        creditsListed:
-        data.creditsListed,
-
-        pricePerCredit:
-        data.pricePerCredit
-
-    });
-
+    pricePerCredit: data.pricePerCredit,
+  });
 };
 
-export const getListingsService =
-async()=>{
-
-    return Marketplace.find({
-        status:"active"
-    }).populate("project");
-
+export const getListingsService = async () => {
+  return Marketplace.find({
+    status: "active",
+  }).populate("project");
 };
 
-export const buyCreditsService =
-async(listingId)=>{
+export const buyCreditsService = async (listingId) => {
+  const listing = await Marketplace.findById(listingId);
 
-    const listing =
-    await Marketplace.findById(
-        listingId
-    );
+  if (!listing) {
+    throw new Error("Listing not found");
+  }
 
-    if(!listing){
-        throw new Error(
-            "Listing not found"
-        );
-    }
+  listing.status = "sold";
 
-    listing.status = "sold";
+  await listing.save();
 
-    await listing.save();
+  return listing;
+};
 
-    return listing;
+export const syncListingService = async (data) => {
+  return Marketplace.create({
+    contractListingId: data.contractListingId,
+    transactionHash: data.transactionHash,
 
+    project: data.projectId,
+
+    sellerWallet: data.sellerWallet,
+
+    creditsListed: data.creditsListed,
+
+    pricePerCredit: data.pricePerCredit,
+
+    status: "active",
+  });
 };

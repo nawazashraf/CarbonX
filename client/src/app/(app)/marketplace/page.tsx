@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useProjects } from "@/hooks/projects/useProjects";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { useBuyCredits } from "@/hooks/marketplace/useBuyCredits";
 interface Project {
   id: string;
   name: string;
@@ -94,6 +94,7 @@ export default function Marketplace() {
   const [liveCarbonReduced, setLiveCarbonReduced] = useState(2400150320);
 
   const { data, isLoading, error } = useProjects();
+  const buyMutation = useBuyCredits();
 
   const projects: Project[] = useMemo(() => {
     if (!data?.data) return [];
@@ -186,29 +187,22 @@ export default function Marketplace() {
     setTxHash("");
   };
 
-  const handleConfirmPurchase = () => {
-    setTxState("submitting");
+  const handleConfirmPurchase = async () => {
+    if (!selectedProject) return;
 
-    // Phase 1: Initiating transaction
-    setTimeout(() => {
-      setTxState("confirming");
+    try {
+      setTxState("submitting");
 
-      // Phase 2: Verifying blockchain registry and updating stats
-      setTimeout(() => {
-        setTxState("success");
-        // Generate mock transaction hash
-        const hash =
-          "0x" +
-          Array.from({ length: 40 }, () =>
-            Math.floor(Math.random() * 16).toString(16),
-          ).join("");
-        setTxHash(hash);
+      const receipt = await buyMutation.mutateAsync(selectedProject);
 
-        // Update local stats based on the purchase size
-        setLiveCreditsRetired((prev) => prev + purchaseTons);
-        setLiveCarbonReduced((prev) => prev + purchaseTons * 1000); // 1 credit ≈ 1000kg/1 Ton
-      }, 2000);
-    }, 1500);
+      setTxHash(receipt.transactionHash);
+
+      setTxState("success");
+    } catch (error) {
+      console.error(error);
+
+      setTxState("idle");
+    }
   };
 
   // Calculations for purchase
