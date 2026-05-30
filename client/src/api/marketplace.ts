@@ -14,4 +14,21 @@ export const marketplaceService = {
 
     return res.data.data;
   },
+
+  syncListing: async (payload: {
+    projectId: string;
+    contractListingId: number;
+    transactionHash: string;
+    sellerWallet: string;
+    creditsListed: number;
+    pricePerCredit: number;
+  }) => {
+    const res = await axios.post(`${API}/marketplace/sync`, payload);
+    return res.data.data;
+  },
+
+  buyListing: async (listingId: string) => {
+    const res = await axios.post(`${API}/marketplace/buy/${listingId}`);
+    return res.data.data;
+  },
 };

@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { useAccount } from "wagmi";
 
 interface DocumentItem {
   id: string;
@@ -16,6 +18,7 @@ interface DocumentItem {
 export default function UnifiedNewProjectWizard() {
   const router = useRouter();
 
+  const { address } = useAccount();
   // Unified Step Tracking (1 = Details, 2 = Documents, 3 = Verification, 4 = Review)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
@@ -32,12 +35,14 @@ export default function UnifiedNewProjectWizard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 3 State: AI Validation Audit
-  const [verificationState, setVerificationState] = useState<"idle" | "running" | "success">("idle");
+  const [verificationState, setVerificationState] = useState<
+    "idle" | "running" | "success"
+  >("idle");
   const [verificationProgress, setVerificationProgress] = useState(0);
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  
+
   // Step 4 State: Success Overlay Modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -46,6 +51,37 @@ export default function UnifiedNewProjectWizard() {
     setTimeout(() => {
       setToastMessage(null);
     }, 3000);
+  };
+
+  const submitProject = async () => {
+    try {
+      await axios.post("http://localhost:5000/api/projects", {
+        name: projectName,
+
+        description: "Project submitted through CarbonX",
+
+        location: coordinates,
+
+        category:
+          category === "reforestation"
+            ? "Forestry"
+            : category === "renewable"
+              ? "Energy"
+              : category === "blue-carbon"
+                ? "Ocean"
+                : "Tech",
+
+        developer: organization,
+
+        ownerWallet: address,
+
+        creditsRequested: 10000,
+      });
+
+      router.push("/projects");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // Step 1 Coordinate picking interaction
@@ -117,11 +153,13 @@ export default function UnifiedNewProjectWizard() {
         file.size > 1024 * 1024
           ? `${(file.size / (1024 * 1024)).toFixed(1)} MB`
           : `${(file.size / 1024).toFixed(0)} KB`;
-      
+
       let docType: "pdf" | "image" | "geojson" | "other" = "other";
       if (file.name.endsWith(".pdf")) docType = "pdf";
-      else if (file.name.match(/\.(png|jpg|jpeg|tiff|tif)$/i)) docType = "image";
-      else if (file.name.endsWith(".geojson") || file.name.endsWith(".json")) docType = "geojson";
+      else if (file.name.match(/\.(png|jpg|jpeg|tiff|tif)$/i))
+        docType = "image";
+      else if (file.name.endsWith(".geojson") || file.name.endsWith(".json"))
+        docType = "geojson";
 
       newDocs.push({
         id: `doc-${Date.now()}-${i}`,
@@ -162,7 +200,7 @@ export default function UnifiedNewProjectWizard() {
             return { ...doc, progress: nextProgress };
           }
           return doc;
-        })
+        }),
       );
     }, 800);
 
@@ -189,7 +227,9 @@ export default function UnifiedNewProjectWizard() {
       setCurrentStep(3);
     } else if (currentStep === 3) {
       if (verificationState !== "success") {
-        showToast("Please run and complete the AI Verification Audit before continuing");
+        showToast(
+          "Please run and complete the AI Verification Audit before continuing",
+        );
         return;
       }
       setCurrentStep(4);
@@ -206,7 +246,6 @@ export default function UnifiedNewProjectWizard() {
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-body-md flex flex-col justify-between relative pb-28">
-      
       {/* Toast Alert */}
       <AnimatePresence>
         {toastMessage && (
@@ -216,7 +255,10 @@ export default function UnifiedNewProjectWizard() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 bg-[#1D1F27] border border-success/35 px-6 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-success font-semibold text-sm"
           >
-            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            <span
+              className="material-symbols-outlined text-[18px]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
               info
             </span>
             {toastMessage}
@@ -225,7 +267,6 @@ export default function UnifiedNewProjectWizard() {
       </AnimatePresence>
 
       <main className="flex-grow flex flex-col items-center justify-start py-8 px-6 max-w-[1280px] w-full mx-auto">
-        
         {/* Unified Stepper Progress Bar */}
         <div className="w-full max-w-[800px] mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -239,26 +280,49 @@ export default function UnifiedNewProjectWizard() {
               {currentStep === 4 && "Review & Submit"}
             </span>
           </div>
-          
+
           <div className="h-1.5 w-full bg-[#1e2029] rounded-full overflow-hidden">
-            <div 
+            <div
               className="h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(180,197,255,0.3)]"
               style={{ width: `${currentStep * 25}%` }}
             ></div>
           </div>
-          
+
           <div className="flex justify-between mt-3 px-1 text-[10px] font-bold uppercase tracking-wider">
-            <span className={currentStep >= 1 ? "text-primary" : "text-on-surface-variant/40"}>Details</span>
-            <span className={currentStep >= 2 ? "text-primary" : "text-on-surface-variant/40"}>Documents</span>
-            <span className={currentStep >= 3 ? "text-primary" : "text-on-surface-variant/40"}>Verification</span>
-            <span className={currentStep >= 4 ? "text-primary" : "text-on-surface-variant/40"}>Review</span>
+            <span
+              className={
+                currentStep >= 1 ? "text-primary" : "text-on-surface-variant/40"
+              }
+            >
+              Details
+            </span>
+            <span
+              className={
+                currentStep >= 2 ? "text-primary" : "text-on-surface-variant/40"
+              }
+            >
+              Documents
+            </span>
+            <span
+              className={
+                currentStep >= 3 ? "text-primary" : "text-on-surface-variant/40"
+              }
+            >
+              Verification
+            </span>
+            <span
+              className={
+                currentStep >= 4 ? "text-primary" : "text-on-surface-variant/40"
+              }
+            >
+              Review
+            </span>
           </div>
         </div>
 
         {/* Dynamic Wizard Steps Renderer */}
         <div className="w-full flex justify-center">
           <AnimatePresence mode="wait">
-            
             {/* STEP 1: Details */}
             {currentStep === 1 && (
               <motion.div
@@ -273,15 +337,18 @@ export default function UnifiedNewProjectWizard() {
                     Project Information
                   </h1>
                   <p className="text-sm text-on-surface-variant">
-                    Enter basic details to begin your environmental project verification.
+                    Enter basic details to begin your environmental project
+                    verification.
                   </p>
                 </header>
 
                 <div className="space-y-5">
                   <div className="flex flex-col gap-2">
-                    <label 
+                    <label
                       className={`text-xs font-bold uppercase tracking-wider transition-colors ${
-                        focusedField === "name" ? "text-primary" : "text-on-surface-variant"
+                        focusedField === "name"
+                          ? "text-primary"
+                          : "text-on-surface-variant"
                       }`}
                       htmlFor="p-name"
                     >
@@ -300,9 +367,11 @@ export default function UnifiedNewProjectWizard() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label 
+                    <label
                       className={`text-xs font-bold uppercase tracking-wider transition-colors ${
-                        focusedField === "org" ? "text-primary" : "text-on-surface-variant"
+                        focusedField === "org"
+                          ? "text-primary"
+                          : "text-on-surface-variant"
                       }`}
                       htmlFor="p-org"
                     >
@@ -321,9 +390,11 @@ export default function UnifiedNewProjectWizard() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label 
+                    <label
                       className={`text-xs font-bold uppercase tracking-wider transition-colors ${
-                        focusedField === "category" ? "text-primary" : "text-on-surface-variant"
+                        focusedField === "category"
+                          ? "text-primary"
+                          : "text-on-surface-variant"
                       }`}
                       htmlFor="p-cat"
                     >
@@ -338,8 +409,12 @@ export default function UnifiedNewProjectWizard() {
                         onBlur={() => setFocusedField(null)}
                         className="w-full appearance-none bg-surface-container-low border border-outline rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none cursor-pointer"
                       >
-                        <option value="" disabled>Select project category</option>
-                        <option value="reforestation">Reforestation &amp; Conservation</option>
+                        <option value="" disabled>
+                          Select project category
+                        </option>
+                        <option value="reforestation">
+                          Reforestation &amp; Conservation
+                        </option>
                         <option value="renewable">Renewable Energy</option>
                         <option value="waste">Waste Management</option>
                         <option value="blue-carbon">Blue Carbon</option>
@@ -382,7 +457,9 @@ export default function UnifiedNewProjectWizard() {
                         </div>
                       </div>
                       <div className="absolute bottom-3 left-3 bg-surface/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-outline">
-                        <span className="text-[10px] font-mono text-primary font-bold">{coordinates}</span>
+                        <span className="text-[10px] font-mono text-primary font-bold">
+                          {coordinates}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -404,7 +481,9 @@ export default function UnifiedNewProjectWizard() {
                     Evidence &amp; Documentation
                   </h1>
                   <p className="text-sm text-on-surface-variant">
-                    Provide the technical proofs, satellite imagery, and methodology compliance documents required for validation registry.
+                    Provide the technical proofs, satellite imagery, and
+                    methodology compliance documents required for validation
+                    registry.
                   </p>
                 </div>
 
@@ -429,13 +508,16 @@ export default function UnifiedNewProjectWizard() {
                     className="hidden"
                   />
                   <div className="w-14 h-14 rounded-full bg-surface-container-low border border-outline flex items-center justify-center mb-3 group-hover:scale-105 transition-transform duration-300">
-                    <span className="material-symbols-outlined text-primary text-[28px]">cloud_upload</span>
+                    <span className="material-symbols-outlined text-primary text-[28px]">
+                      cloud_upload
+                    </span>
                   </div>
                   <h3 className="font-headline-md text-lg font-bold mb-1 text-center">
                     Drag &amp; drop files here
                   </h3>
                   <p className="text-[11px] text-on-surface-variant text-center max-w-[400px] mb-4 leading-relaxed">
-                    Support for PDF, GeoJSON, PNG, and TIFF. Individual files should not exceed 100MB.
+                    Support for PDF, GeoJSON, PNG, and TIFF. Individual files
+                    should not exceed 100MB.
                   </p>
                   <button
                     type="button"
@@ -465,16 +547,27 @@ export default function UnifiedNewProjectWizard() {
                           >
                             <div className="w-12 h-12 bg-surface-container-low rounded-xl flex items-center justify-center shrink-0 border border-outline">
                               <span className="material-symbols-outlined text-primary">
-                                {doc.type === "pdf" ? "description" : doc.type === "image" ? "image" : "map"}
+                                {doc.type === "pdf"
+                                  ? "description"
+                                  : doc.type === "image"
+                                    ? "image"
+                                    : "map"}
                               </span>
                             </div>
 
                             <div className="flex-grow min-w-0">
                               <div className="flex justify-between items-center mb-1 gap-2">
-                                <span className="text-xs font-bold truncate text-white">{doc.name}</span>
+                                <span className="text-xs font-bold truncate text-white">
+                                  {doc.name}
+                                </span>
                                 {doc.status === "verified" && (
                                   <span className="text-success text-xs font-bold flex items-center gap-1 shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                    <span
+                                      className="material-symbols-outlined text-[16px]"
+                                      style={{
+                                        fontVariationSettings: "'FILL' 1",
+                                      }}
+                                    >
                                       check_circle
                                     </span>
                                     Verified
@@ -482,7 +575,9 @@ export default function UnifiedNewProjectWizard() {
                                 )}
                                 {doc.status === "analyzing" && (
                                   <span className="text-warning text-xs font-bold flex items-center gap-1 shrink-0">
-                                    <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+                                    <span className="material-symbols-outlined text-[16px] animate-spin">
+                                      sync
+                                    </span>
                                     Analyzing...
                                   </span>
                                 )}
@@ -499,10 +594,14 @@ export default function UnifiedNewProjectWizard() {
                                     doc.status === "verified"
                                       ? "bg-success w-full"
                                       : doc.status === "analyzing"
-                                      ? "bg-primary w-[75%] animate-pulse"
-                                      : "bg-primary"
+                                        ? "bg-primary w-[75%] animate-pulse"
+                                        : "bg-primary"
                                   }`}
-                                  style={doc.status === "uploading" ? { width: `${doc.progress}%` } : {}}
+                                  style={
+                                    doc.status === "uploading"
+                                      ? { width: `${doc.progress}%` }
+                                      : {}
+                                  }
                                 ></div>
                               </div>
                             </div>
@@ -536,7 +635,8 @@ export default function UnifiedNewProjectWizard() {
                     AI Validation Audit
                   </h1>
                   <p className="text-sm text-on-surface-variant leading-relaxed">
-                    Run multispectral scanning on satellite mapping coordinate logs to initiate registry validation.
+                    Run multispectral scanning on satellite mapping coordinate
+                    logs to initiate registry validation.
                   </p>
                 </div>
 
@@ -544,19 +644,30 @@ export default function UnifiedNewProjectWizard() {
                   {verificationState === "idle" && (
                     <div className="space-y-6 py-6">
                       <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary border border-primary/20">
-                        <span className="material-symbols-outlined text-[40px]">shield_heart</span>
+                        <span className="material-symbols-outlined text-[40px]">
+                          shield_heart
+                        </span>
                       </div>
                       <div className="max-w-md mx-auto space-y-2">
-                        <h3 className="text-lg font-bold text-white">Ready for AI Satellite Audit</h3>
+                        <h3 className="text-lg font-bold text-white">
+                          Ready for AI Satellite Audit
+                        </h3>
                         <p className="text-xs text-on-surface-variant leading-relaxed">
-                          Verify coordinates <span className="font-mono text-primary font-bold">{coordinates}</span> and uploaded documentation layers against international canopy registries.
+                          Verify coordinates{" "}
+                          <span className="font-mono text-primary font-bold">
+                            {coordinates}
+                          </span>{" "}
+                          and uploaded documentation layers against
+                          international canopy registries.
                         </p>
                       </div>
                       <button
                         onClick={startVerificationAudit}
                         className="bg-primary text-on-primary-container px-8 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all cursor-pointer inline-flex items-center gap-2"
                       >
-                        <span className="material-symbols-outlined text-sm">verified_user</span>
+                        <span className="material-symbols-outlined text-sm">
+                          verified_user
+                        </span>
                         Launch Registry Audit
                       </button>
                     </div>
@@ -566,12 +677,17 @@ export default function UnifiedNewProjectWizard() {
                     <div className="space-y-6 py-6">
                       <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
                         <div className="animate-spin rounded-full h-20 w-20 border-b-2 border-primary"></div>
-                        <div className="absolute font-bold text-xs text-primary">{verificationProgress}%</div>
+                        <div className="absolute font-bold text-xs text-primary">
+                          {verificationProgress}%
+                        </div>
                       </div>
                       <div className="max-w-md mx-auto space-y-2">
-                        <h3 className="text-lg font-bold text-white">Scanning Multispectral Layers</h3>
+                        <h3 className="text-lg font-bold text-white">
+                          Scanning Multispectral Layers
+                        </h3>
                         <p className="text-xs text-on-surface-variant leading-relaxed animate-pulse">
-                          Verifying vegetation indexes, matching canopy history, and locking blocks...
+                          Verifying vegetation indexes, matching canopy history,
+                          and locking blocks...
                         </p>
                       </div>
                     </div>
@@ -580,29 +696,48 @@ export default function UnifiedNewProjectWizard() {
                   {verificationState === "success" && (
                     <div className="space-y-6 py-4">
                       <div className="w-20 h-20 bg-success/15 rounded-full flex items-center justify-center mx-auto text-success border border-success/35 shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                        <span className="material-symbols-outlined text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                        <span
+                          className="material-symbols-outlined text-[40px]"
+                          style={{ fontVariationSettings: "'FILL' 1" }}
+                        >
                           verified
                         </span>
                       </div>
                       <div className="max-w-md mx-auto space-y-2">
-                        <h3 className="text-xl font-extrabold text-white">AI Integrity Verification Passed</h3>
+                        <h3 className="text-xl font-extrabold text-white">
+                          AI Integrity Verification Passed
+                        </h3>
                         <p className="text-xs text-on-surface-variant leading-relaxed">
-                          Validation report successfully generated and logged in block ledger. Estimated carbon score matches standard compliance thresholds.
+                          Validation report successfully generated and logged in
+                          block ledger. Estimated carbon score matches standard
+                          compliance thresholds.
                         </p>
                       </div>
 
                       <div className="bg-surface-container-low p-4 rounded-xl border border-outline text-left space-y-3 max-w-sm mx-auto">
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-on-surface-variant">Ledger Hash:</span>
-                          <span className="font-mono text-primary font-bold">0x8aF...20bF</span>
+                          <span className="text-on-surface-variant">
+                            Ledger Hash:
+                          </span>
+                          <span className="font-mono text-primary font-bold">
+                            0x8aF...20bF
+                          </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-on-surface-variant">Estimated Score:</span>
-                          <span className="text-success font-bold">96% Compliance</span>
+                          <span className="text-on-surface-variant">
+                            Estimated Score:
+                          </span>
+                          <span className="text-success font-bold">
+                            96% Compliance
+                          </span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-on-surface-variant">Status:</span>
-                          <span className="bg-warning/20 text-warning px-2.5 py-0.5 rounded text-[10px] font-bold">Pending Registry Signature</span>
+                          <span className="text-on-surface-variant">
+                            Status:
+                          </span>
+                          <span className="bg-warning/20 text-warning px-2.5 py-0.5 rounded text-[10px] font-bold">
+                            Pending Registry Signature
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -622,46 +757,76 @@ export default function UnifiedNewProjectWizard() {
               >
                 {/* Left columns */}
                 <div className="lg:col-span-8 space-y-6">
-                  
                   {/* Overview Card */}
                   <section className="bg-surface-container border border-outline rounded-2xl p-6 space-y-4">
-                    <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">Project Overview</h2>
+                    <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">
+                      Project Overview
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       <div>
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Project Name</p>
-                        <p className="text-sm font-semibold text-white">{projectName || "Not specified"}</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">
+                          Project Name
+                        </p>
+                        <p className="text-sm font-semibold text-white">
+                          {projectName || "Not specified"}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Registry ID</p>
-                        <p className="text-sm font-mono text-primary font-bold">VER-BR-2024-882</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">
+                          Registry ID
+                        </p>
+                        <p className="text-sm font-mono text-primary font-bold">
+                          VER-BR-2024-882
+                        </p>
                       </div>
                       <div className="md:col-span-2">
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Organization</p>
-                        <p className="text-sm text-white">{organization || "Not specified"}</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">
+                          Organization
+                        </p>
+                        <p className="text-sm text-white">
+                          {organization || "Not specified"}
+                        </p>
                       </div>
                     </div>
                   </section>
 
                   {/* Impact metrics Card */}
                   <section className="bg-surface-container border border-outline rounded-2xl p-6 space-y-4">
-                    <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">Impact Metrics</h2>
+                    <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">
+                      Impact Metrics
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="p-4 bg-surface-container-low rounded-xl border border-outline space-y-1">
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Est. CO2 Offset</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
+                          Est. CO2 Offset
+                        </p>
                         <p className="text-xl font-black text-primary">
-                          12,500 <span className="text-xs font-semibold text-on-surface-variant">tCO2e/yr</span>
+                          12,500{" "}
+                          <span className="text-xs font-semibold text-on-surface-variant">
+                            tCO2e/yr
+                          </span>
                         </p>
                       </div>
                       <div className="p-4 bg-surface-container-low rounded-xl border border-outline space-y-1">
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Species Diversity</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
+                          Species Diversity
+                        </p>
                         <p className="text-xl font-black text-tertiary">
-                          42 <span className="text-xs font-semibold text-on-surface-variant">Native</span>
+                          42{" "}
+                          <span className="text-xs font-semibold text-on-surface-variant">
+                            Native
+                          </span>
                         </p>
                       </div>
                       <div className="p-4 bg-surface-container-low rounded-xl border border-outline space-y-1">
-                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Local Jobs</p>
+                        <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
+                          Local Jobs
+                        </p>
                         <p className="text-xl font-black text-success">
-                          120 <span className="text-xs font-semibold text-on-surface-variant">FTEs</span>
+                          120{" "}
+                          <span className="text-xs font-semibold text-on-surface-variant">
+                            FTEs
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -670,27 +835,43 @@ export default function UnifiedNewProjectWizard() {
                   {/* Uploaded verified documents review */}
                   <section className="bg-surface-container border border-outline rounded-2xl p-6 space-y-4">
                     <div className="flex justify-between items-center">
-                      <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">Documents</h2>
+                      <h2 className="font-headline-md text-xl font-bold text-white tracking-tight">
+                        Documents
+                      </h2>
                       <button
                         onClick={() => setCurrentStep(2)}
                         className="text-primary font-bold text-xs flex items-center gap-1 hover:underline cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                        <span className="material-symbols-outlined text-[16px]">
+                          edit
+                        </span>
                         Edit
                       </button>
                     </div>
 
                     <div className="space-y-3">
                       {docs.map((doc) => (
-                        <div key={doc.id} className="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline">
+                        <div
+                          key={doc.id}
+                          className="flex items-center justify-between p-3.5 bg-surface-container-low rounded-xl border border-outline"
+                        >
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined text-primary">
-                              {doc.type === "pdf" ? "description" : doc.type === "image" ? "image" : "map"}
+                              {doc.type === "pdf"
+                                ? "description"
+                                : doc.type === "image"
+                                  ? "image"
+                                  : "map"}
                             </span>
-                            <span className="text-xs font-bold text-white">{doc.name}</span>
+                            <span className="text-xs font-bold text-white">
+                              {doc.name}
+                            </span>
                           </div>
                           <span className="text-success text-xs font-bold flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            <span
+                              className="material-symbols-outlined text-[16px]"
+                              style={{ fontVariationSettings: "'FILL' 1" }}
+                            >
                               check_circle
                             </span>
                             Verified
@@ -709,7 +890,15 @@ export default function UnifiedNewProjectWizard() {
 
                   <div className="relative w-40 h-40 mx-auto">
                     <svg className="w-full h-full transform -rotate-90">
-                      <circle className="text-[#2A2A2A]" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" strokeWidth="10"></circle>
+                      <circle
+                        className="text-[#2A2A2A]"
+                        cx="80"
+                        cy="80"
+                        fill="transparent"
+                        r="70"
+                        stroke="currentColor"
+                        strokeWidth="10"
+                      ></circle>
                       <circle
                         className="text-primary transition-all duration-1000"
                         cx="80"
@@ -724,80 +913,95 @@ export default function UnifiedNewProjectWizard() {
                       ></circle>
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-extrabold text-white">85</span>
-                      <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Of 100</span>
+                      <span className="text-3xl font-extrabold text-white">
+                        85
+                      </span>
+                      <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">
+                        Of 100
+                      </span>
                     </div>
                   </div>
 
                   <div className="space-y-3 pt-2">
                     <div className="flex items-start gap-2.5 text-xs text-success font-semibold">
-                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      <span
+                        className="material-symbols-outlined text-[18px]"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
                         check_circle
                       </span>
                       <span>High-resolution satellite data provided</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-xs text-success font-semibold">
-                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      <span
+                        className="material-symbols-outlined text-[18px]"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
                         check_circle
                       </span>
                       <span>Additionality criteria met</span>
                     </div>
                     <div className="flex items-start gap-2.5 text-xs text-warning font-semibold">
-                      <span className="material-symbols-outlined text-[18px]">info</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        info
+                      </span>
                       <span>Financial audits pending review</span>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => setShowSuccessModal(true)}
+                    onClick={submitProject}
                     className="w-full bg-primary text-on-primary-container py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all cursor-pointer shadow-lg shadow-primary/10 active:scale-[0.98]"
                   >
                     Submit for Certification
                   </button>
 
                   <p className="text-center text-[10px] text-on-surface-variant leading-relaxed">
-                    By submitting, you agree to the CarbonX Institutional Compliance standards.
+                    By submitting, you agree to the CarbonX Institutional
+                    Compliance standards.
                   </p>
                 </div>
               </motion.div>
             )}
-
           </AnimatePresence>
         </div>
-
       </main>
 
       {/* Global Unified Action Footer */}
       <div className="fixed bottom-0 left-0 w-full bg-surface/85 backdrop-blur-md border-t border-outline px-6 py-5 z-40">
         <div className="max-w-[800px] mx-auto flex justify-between items-center">
-          
           <button
             onClick={handleBack}
             className="text-on-surface-variant hover:text-white flex items-center gap-2 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <span className="material-symbols-outlined text-[18px]">
+              arrow_back
+            </span>
             Back
           </button>
 
           <div className="flex gap-3">
             <button
-              onClick={() => showToast("Progress saved to draft registry dashboard")}
+              onClick={() =>
+                showToast("Progress saved to draft registry dashboard")
+              }
               className="px-5 py-2.5 rounded-xl border border-[#2a2a2a] hover:bg-[#1a1a1a] text-on-surface-variant hover:text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
             >
               Save Draft
             </button>
-            
+
             {currentStep < 4 && (
               <button
                 onClick={handleNext}
                 className="px-6 py-2.5 rounded-xl bg-primary text-on-primary-container hover:opacity-95 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-primary/10"
               >
                 Continue
-                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  arrow_forward
+                </span>
               </button>
             )}
           </div>
-
         </div>
       </div>
 
@@ -805,7 +1009,6 @@ export default function UnifiedNewProjectWizard() {
       <AnimatePresence>
         {showSuccessModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -844,9 +1047,11 @@ export default function UnifiedNewProjectWizard() {
               <h2 className="font-headline-md text-2xl font-extrabold text-white mb-2">
                 Project Submitted Successfully
               </h2>
-              
+
               <p className="text-xs text-on-surface-variant leading-relaxed mb-6 max-w-sm mx-auto">
-                Your submission has been logged and queued for technical verification. You will receive an automated update once the first phase is complete.
+                Your submission has been logged and queued for technical
+                verification. You will receive an automated update once the
+                first phase is complete.
               </p>
 
               <div className="grid grid-cols-2 gap-4 mb-8">
@@ -854,13 +1059,17 @@ export default function UnifiedNewProjectWizard() {
                   <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">
                     Submission ID
                   </p>
-                  <p className="font-mono text-primary font-bold text-sm">CX-9928</p>
+                  <p className="font-mono text-primary font-bold text-sm">
+                    CX-9928
+                  </p>
                 </div>
                 <div className="bg-[#282a32] p-4 rounded-xl border border-outline">
                   <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">
                     Est. Review Time
                   </p>
-                  <p className="font-bold text-white text-sm">4-6 Business Days</p>
+                  <p className="font-bold text-white text-sm">
+                    4-6 Business Days
+                  </p>
                 </div>
               </div>
 
@@ -883,12 +1092,10 @@ export default function UnifiedNewProjectWizard() {
                   Track Progress
                 </button>
               </div>
-
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
     </div>
   );
 }
