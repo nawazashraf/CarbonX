@@ -66,7 +66,7 @@ export const useCreateListing = () => {
 
         transactionHash: receipt.transactionHash,
 
-        sellerWallet: address,
+        sellerWallet: address!,
 
         creditsListed,
 

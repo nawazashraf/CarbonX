@@ -70,6 +70,7 @@ async (wallet) => {
         ownerWallet:
         wallet.toLowerCase()
     })
+    .populate("project")
     .sort({
         createdAt: -1
     });

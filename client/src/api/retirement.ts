@@ -2,13 +2,12 @@ import { api } from "./axios";
 
 export const retireCredits = async (payload: {
   projectId: string;
-  ownerWallet: string;
   creditsRetired: number;
-  reason?: string;
+  ownerWallet: string;
   txHash: string;
+  reason?: string;
 }) => {
   const { data } = await api.post("/retirements/retire", payload);
-
   return data;
 };
 
@@ -21,4 +20,3 @@ export const getCertificate = async (id: string) => {
   const { data } = await api.get(`/retirements/certificate/${id}`);
   return data;
 };
-
