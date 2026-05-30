@@ -1,7 +1,7 @@
 import express from "express";
 
 import projectModule
-from "./modules/project/index.js";
+from "./modules/Projects/index.js";
 
 const app = express();
 
