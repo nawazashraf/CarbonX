@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAccount } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
+import { waitForTransactionReceipt, readContract } from "@wagmi/core";
+import { config } from "@/configs/wagmiConfig";
+import { CARBON_TOKEN_ADDRESS } from "@/lib/contract";
+import { carbonAbi } from "@/lib/abis/carbonAbi";
 import { useCreateProject } from "@/hooks/projects/useCreateProject";
 
 interface DocumentItem {
@@ -19,6 +23,7 @@ export default function UnifiedNewProjectWizard() {
   const router = useRouter();
 
   const { address } = useAccount();
+  const { writeContractAsync } = useWriteContract();
   // Unified Step Tracking (1 = Details, 2 = Documents, 3 = Verification, 4 = Review)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
@@ -970,6 +975,29 @@ export default function UnifiedNewProjectWizard() {
             }
             setIsSubmitting(true);
             try {
+              showToast("Step 1/2: Creating project on-chain...");
+              const txHash = await writeContractAsync({
+                address: CARBON_TOKEN_ADDRESS,
+                abi: carbonAbi,
+                functionName: "createProject",
+                args: [projectName, coordinates, BigInt(creditsRequested)],
+              });
+
+              showToast("Step 2/2: Confirming blockchain transaction...");
+              const receipt = await waitForTransactionReceipt(config, {
+                hash: txHash,
+              });
+
+              showToast("Reading project count from contract...");
+              const count = await readContract(config, {
+                address: CARBON_TOKEN_ADDRESS,
+                abi: carbonAbi,
+                functionName: "projectCount",
+              });
+
+              const contractProjectId = Number(count);
+
+              showToast("Synchronizing with registry database...");
               await createProjectMutation.mutateAsync({
                 name: projectName,
                 description,
@@ -978,10 +1006,11 @@ export default function UnifiedNewProjectWizard() {
                 developer: organization,
                 ownerWallet: address.toLowerCase(),
                 creditsRequested: Number(creditsRequested),
+                contractProjectId,
               });
               setShowSuccessModal(true);
             } catch (err: any) {
-              showToast(err?.response?.data?.message || "Failed to submit project to registry.");
+              showToast(err?.message || err?.response?.data?.message || "Failed to submit project to registry.");
             } finally {
               setIsSubmitting(false);
             }
