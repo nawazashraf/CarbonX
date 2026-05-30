@@ -22,7 +22,7 @@ export const verifyProjectService = async (
 
     project.verified = true;
     project.creditsApproved = approvedCredits;
-    project.availableCredits = approvedCredits;
+    project.availableCredits = 0;
 
     await project.save();
 

@@ -1,7 +1,7 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useWriteContract } from "wagmi";
 
-import { waitForTransactionReceipt } from "@wagmi/core";
+import { waitForTransactionReceipt, readContract } from "@wagmi/core";
 
 import { config } from "@/configs/wagmiConfig";
 
@@ -14,8 +14,8 @@ import { syncListing } from "@/api/marketplace";
 
 export const useCreateListing = () => {
   const { address } = useAccount();
-
   const { writeContractAsync } = useWriteContract();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
@@ -51,7 +51,13 @@ export const useCreateListing = () => {
         hash: listHash,
       });
 
-      const contractListingId = 1; // temporary
+      const count = await readContract(config, {
+        address: MARKETPLACE_ADDRESS,
+        abi: marketplaceAbi,
+        functionName: "listingCount",
+      });
+
+      const contractListingId = Number(count);
 
       await syncListing({
         projectId,
@@ -69,5 +75,14 @@ export const useCreateListing = () => {
 
       return receipt;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listings"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+      });
+    },
   });
 };
+

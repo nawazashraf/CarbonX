@@ -28,6 +28,7 @@ export default function Navbar() {
     { label: "Dashboard", href: "/dashboard" },
     { label: "Marketplace", href: "/marketplace" },
     { label: "Projects", href: "/projects" },
+    { label: "Retirement", href: "/retirement" },
     { label: "Rankings", href: "/rankings" },
     { label: "Analytics", href: "/analytics" },
   ];

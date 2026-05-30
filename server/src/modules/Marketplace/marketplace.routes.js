@@ -4,6 +4,7 @@ import {
   createListing,
   getListings,
   buyCredits,
+  syncListing,
 } from "./marketplace.controller.js";
 
 const router = express.Router();

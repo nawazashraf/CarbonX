@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAccount } from "wagmi";
+import { useCreateProject } from "@/hooks/projects/useCreateProject";
 
 interface DocumentItem {
   id: string;
@@ -19,10 +21,16 @@ export default function UnifiedNewProjectWizard() {
   // Unified Step Tracking (1 = Details, 2 = Documents, 3 = Verification, 4 = Review)
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
 
+  const { address } = useAccount();
+  const createProjectMutation = useCreateProject();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Step 1 State: Project Information (Initially empty)
   const [projectName, setProjectName] = useState("");
   const [organization, setOrganization] = useState("");
   const [category, setCategory] = useState("");
+  const [description, setDescription] = useState("");
+  const [creditsRequested, setCreditsRequested] = useState<number | "">("");
   const [coordinates, setCoordinates] = useState("3.4653° S, 62.2159° W");
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
@@ -171,7 +179,7 @@ export default function UnifiedNewProjectWizard() {
 
   const handleNext = () => {
     if (currentStep === 1) {
-      if (!projectName || !organization || !category) {
+      if (!projectName || !organization || !category || !description || !creditsRequested) {
         showToast("Please fill in all details before continuing");
         return;
       }
@@ -339,15 +347,57 @@ export default function UnifiedNewProjectWizard() {
                         className="w-full appearance-none bg-surface-container-low border border-outline rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none cursor-pointer"
                       >
                         <option value="" disabled>Select project category</option>
-                        <option value="reforestation">Reforestation &amp; Conservation</option>
-                        <option value="renewable">Renewable Energy</option>
-                        <option value="waste">Waste Management</option>
-                        <option value="blue-carbon">Blue Carbon</option>
+                        <option value="Forestry">Reforestation &amp; Conservation</option>
+                        <option value="Energy">Renewable Energy</option>
+                        <option value="Tech">Waste Management</option>
+                        <option value="Ocean">Blue Carbon</option>
                       </select>
                       <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
                         expand_more
                       </span>
                     </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label 
+                      className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                        focusedField === "description" ? "text-primary" : "text-on-surface-variant"
+                      }`}
+                      htmlFor="p-desc"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      id="p-desc"
+                      rows={3}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      onFocus={() => setFocusedField("description")}
+                      onBlur={() => setFocusedField(null)}
+                      placeholder="Describe the ecological impact and scope..."
+                      className="bg-surface-container-low border border-outline rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label 
+                      className={`text-xs font-bold uppercase tracking-wider transition-colors ${
+                        focusedField === "credits" ? "text-primary" : "text-on-surface-variant"
+                      }`}
+                      htmlFor="p-credits"
+                    >
+                      Credits Requested (tCO2e)
+                    </label>
+                    <input
+                      id="p-credits"
+                      type="number"
+                      value={creditsRequested}
+                      onChange={(e) => setCreditsRequested(e.target.value === "" ? "" : Number(e.target.value))}
+                      onFocus={() => setFocusedField("credits")}
+                      onBlur={() => setFocusedField(null)}
+                      placeholder="e.g. 10000"
+                      className="bg-surface-container-low border border-outline rounded-xl px-4 py-3 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary transition-all outline-none"
+                    />
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -749,10 +799,40 @@ export default function UnifiedNewProjectWizard() {
                   </div>
 
                   <button
-                    onClick={() => setShowSuccessModal(true)}
-                    className="w-full bg-primary text-on-primary-container py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all cursor-pointer shadow-lg shadow-primary/10 active:scale-[0.98]"
+                    onClick={async () => {
+                      if (!address) {
+                        showToast("Please connect your Web3 wallet first.");
+                        return;
+                      }
+                      setIsSubmitting(true);
+                      try {
+                        await createProjectMutation.mutateAsync({
+                          name: projectName,
+                          description,
+                          location: coordinates,
+                          category,
+                          developer: organization,
+                          ownerWallet: address.toLowerCase(),
+                          creditsRequested: Number(creditsRequested),
+                        });
+                        setShowSuccessModal(true);
+                      } catch (err: any) {
+                        showToast(err?.response?.data?.message || "Failed to submit project to registry.");
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                    disabled={isSubmitting}
+                    className="w-full bg-primary text-on-primary-container py-4 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-95 transition-all cursor-pointer shadow-lg shadow-primary/10 active:scale-[0.98] flex items-center justify-center gap-2"
                   >
-                    Submit for Certification
+                    {isSubmitting ? (
+                      <>
+                        <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                        Submitting to Registry...
+                      </>
+                    ) : (
+                      "Submit for Certification"
+                    )}
                   </button>
 
                   <p className="text-center text-[10px] text-on-surface-variant leading-relaxed">

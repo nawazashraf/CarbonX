@@ -5,3 +5,9 @@ export const createTransaction = async (payload: any) => {
 
   return data;
 };
+
+export const getTransactionsByWallet = async (wallet: string) => {
+  const { data } = await api.get(`/transactions/wallet/${wallet}`);
+  return data;
+};
+

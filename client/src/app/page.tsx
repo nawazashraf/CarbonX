@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useOverview } from "@/hooks/analytics/useOverview";
 
 // Count-up counter helper component
 function Counter({ target, isFloat = false, duration = 2 }: { target: number; isFloat?: boolean; duration?: number }) {
@@ -43,6 +44,12 @@ function Counter({ target, isFloat = false, duration = 2 }: { target: number; is
 }
 
 export default function Home() {
+  const { data: overview } = useOverview();
+  const totalCredits = overview?.totalCreditsMinted || 0;
+  const retiredCredits = overview?.totalCreditsRetired || 0;
+  const verifiedCount = overview?.verifiedProjects || 0;
+
+
   return (
     <div className="min-h-screen bg-surface text-on-surface flex flex-col font-sans selection:bg-primary-container/30">
       <Navbar />
@@ -398,27 +405,27 @@ export default function Home() {
             
             <div className="space-y-3">
               <div className="text-[64px] font-black text-primary leading-none tracking-tight">
-                <Counter target={1.2} isFloat={true} />M
+                <Counter target={totalCredits || 1240150} />
               </div>
               <p className="font-label-md text-xs text-on-surface-variant uppercase tracking-widest font-bold">
-                Tons CO2 Offset
+                Tons CO2 Minted
               </p>
               <div className="h-0.5 w-12 bg-primary/20 mx-auto mt-6 rounded-full"></div>
             </div>
 
             <div className="space-y-3">
               <div className="text-[64px] font-black text-secondary leading-none tracking-tight">
-                <Counter target={3.4} isFloat={true} />M
+                <Counter target={retiredCredits || 480200} />
               </div>
               <p className="font-label-md text-xs text-on-surface-variant uppercase tracking-widest font-bold">
-                Trees Protected
+                Tons CO2 Retired
               </p>
               <div className="h-0.5 w-12 bg-secondary/20 mx-auto mt-6 rounded-full"></div>
             </div>
 
             <div className="space-y-3">
               <div className="text-[64px] font-black text-primary leading-none tracking-tight">
-                <Counter target={152} />
+                <Counter target={verifiedCount || 152} />
               </div>
               <p className="font-label-md text-xs text-on-surface-variant uppercase tracking-widest font-bold">
                 Projects Verified

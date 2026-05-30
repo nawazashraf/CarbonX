@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useWriteContract } from "wagmi";
 
 import { waitForTransactionReceipt } from "@wagmi/core";
@@ -15,8 +15,8 @@ import { createTransaction } from "@/api/transactions";
 
 export const useBuyCredits = () => {
   const { address } = useAccount();
-
   const { writeContractAsync } = useWriteContract();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (listing: any) => {
@@ -53,5 +53,14 @@ export const useBuyCredits = () => {
 
       return receipt;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listings"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+      });
+    },
   });
 };
+

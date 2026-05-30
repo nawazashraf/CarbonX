@@ -2,6 +2,7 @@ import {
   createListingService,
   getListingsService,
   buyCreditsService,
+  syncListingService,
 } from "./marketplace.service.js";
 
 export const createListing = async (req, res) => {
