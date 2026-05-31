@@ -1,7 +1,7 @@
 import express from "express";
 
 import projectModule from "./modules/Projects/index.js";
-import verificationModule from "./modules/verification/index.js";
+import verificationModule from "./modules/Verification/index.js";
 import creditsRoutes from "./modules/Credits/credits.routes.js";
 import marketplaceRoutes from "./modules/Marketplace/marketplace.routes.js";
 import retirementRoutes from "./modules/Retirement/retirement.routes.js";
