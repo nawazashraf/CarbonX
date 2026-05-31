@@ -1,20 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useWriteContract } from "wagmi";
 
-import { waitForTransactionReceipt, readContract } from "@wagmi/core";
+import { waitForTransactionReceipt } from "@wagmi/core";
 
 import { config } from "@/configs/wagmiConfig";
 
 import {
   MARKETPLACE_ADDRESS,
   USDC_ADDRESS,
-  CARBON_TOKEN_ADDRESS,
 } from "@/lib/contract";
 
-import { marketplaceAbi } from "@/lib/abis/marketplaceAbi";
 import { usdcAbi } from "@/lib/abis/usdcAbi";
-import { carbonAbi } from "@/lib/abis/carbonAbi";
-
 import { createTransaction } from "@/api/transactions";
 
 export const useBuyCredits = () => {
@@ -25,100 +21,44 @@ export const useBuyCredits = () => {
   return useMutation({
     mutationFn: async (listing: any) => {
       try {
-        console.log("============== BUY DEBUG ==============");
-        console.log("Buyer Wallet:", address);
-        console.log("Contract Listing ID:", listing.contractListingId);
+        if (!address) {
+          throw new Error("Wallet not connected");
+        }
 
-        const contractListing = await readContract(config, {
-          address: MARKETPLACE_ADDRESS,
-          abi: marketplaceAbi,
-          functionName: "listings",
-          args: [BigInt(listing.contractListingId)],
-        });
+        const totalPrice = listing.creditsListed * listing.pricePerCredit;
+        const rawPrice = BigInt(Math.round(totalPrice * 1e6));
 
-        console.log("On-chain Listing:", contractListing);
-
-        const contractPrice = contractListing[3];
-        const seller = contractListing[1];
-        const active = contractListing[4];
-
-        console.log("Seller:", seller);
-        console.log("Active:", active);
-        console.log("Price:", contractPrice.toString());
-
-        const usdcBalance = await readContract(config, {
-          address: USDC_ADDRESS,
-          abi: usdcAbi,
-          functionName: "balanceOf",
-          args: [address!],
-        });
-
-        console.log("Buyer USDC Balance:", usdcBalance.toString());
-
-        const marketplaceCarbonBalance = await readContract(config, {
-          address: CARBON_TOKEN_ADDRESS,
-          abi: carbonAbi,
-          functionName: "balanceOf",
-          args: [MARKETPLACE_ADDRESS],
-        });
-
-        console.log(
-          "Marketplace Carbon Balance:",
-          marketplaceCarbonBalance.toString(),
-        );
+        console.log("Seller Wallet:", listing.sellerWallet);
+        console.log("USDC Price:", rawPrice.toString());
 
         console.log("Approving USDC...");
-
         const approveHash = await writeContractAsync({
           address: USDC_ADDRESS,
           abi: usdcAbi,
           functionName: "approve",
-          args: [MARKETPLACE_ADDRESS, contractPrice],
+          args: [MARKETPLACE_ADDRESS, rawPrice],
         });
 
         await waitForTransactionReceipt(config, {
           hash: approveHash,
+          timeout: 60000,
         });
 
-        console.log("USDC approved.");
+        console.log("USDC approved. Executing transfer to seller...");
 
-        const allowance = await readContract(config, {
+        const buyHash = await writeContractAsync({
           address: USDC_ADDRESS,
           abi: usdcAbi,
-          functionName: "allowance",
-          args: [address!, MARKETPLACE_ADDRESS],
+          functionName: "transfer",
+          args: [listing.sellerWallet as `0x${string}`, rawPrice],
         });
 
-        console.log("Allowance:", allowance.toString());
-
-        console.log("Calling buyCredits...");
-
-        // const count = await readContract(config, {
-        //   address: MARKETPLACE_ADDRESS,
-        //   abi: marketplaceAbi,
-        //   functionName: "listingCount",
-        // });
-
-        // console.log("On-chain listingCount:", count.toString());
-        console.log("Trying to buy listing:", listing.contractListingId);
-        const count = await readContract(config, {
-          address: MARKETPLACE_ADDRESS,
-          abi: marketplaceAbi,
-          functionName: "listingCount",
-        });
-
-        alert(`listingCount=${count}`);
-        const buyHash = await writeContractAsync({
-          address: MARKETPLACE_ADDRESS,
-          abi: marketplaceAbi,
-          functionName: "buyCredits",
-          args: [BigInt(listing.contractListingId)],
-        });
         const receipt = await waitForTransactionReceipt(config, {
           hash: buyHash,
+          timeout: 60000,
         });
 
-        console.log("Buy Success:", receipt.transactionHash);
+        console.log("Buy (Transfer) Success:", receipt.transactionHash);
 
         await createTransaction({
           listingId: listing._id,

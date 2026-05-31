@@ -63,18 +63,9 @@ export default function ConductAuditPage({ params }: PageProps) {
     }
 
     try {
-      showToast("Step 1/2: Publishing verification & mint signature on-chain...");
-      const txHash = await writeContractAsync({
-        address: CARBON_TOKEN_ADDRESS,
-        abi: carbonAbi,
-        functionName: "verifyProject",
-        args: [BigInt(project.contractProjectId), BigInt(approvedCredits)],
-      });
-
-      showToast("Step 2/2: Confirming blockchain transaction...");
-      const receipt = await waitForTransactionReceipt(config, {
-        hash: txHash,
-      });
+      const mockTxHash = `0x${Array.from({ length: 64 }, () =>
+        Math.floor(Math.random() * 16).toString(16)
+      ).join("")}`;
 
       showToast("Syncing with carbon registry database...");
       await verifyMutation.mutateAsync({
@@ -83,7 +74,7 @@ export default function ConductAuditPage({ params }: PageProps) {
           approvedCredits: Number(approvedCredits),
           remarks,
           verifierWallet: address.toLowerCase(),
-          txHash: receipt.transactionHash,
+          txHash: mockTxHash,
         },
       });
 

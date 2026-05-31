@@ -2,14 +2,19 @@ import axios from "axios";
 
 const getBaseURL = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!envUrl) return "http://localhost:5000/api";
-  
-  if (envUrl.endsWith("/api") || envUrl.endsWith("/api/")) {
-    return envUrl;
+  if (envUrl) {
+    if (envUrl.endsWith("/api") || envUrl.endsWith("/api/")) {
+      return envUrl;
+    }
+    const cleanUrl = envUrl.replace(/\/$/, "");
+    return `${cleanUrl}/api`;
   }
-  
-  const cleanUrl = envUrl.replace(/\/$/, "");
-  return `${cleanUrl}/api`;
+
+  if (typeof window !== "undefined") {
+    return "/api";
+  }
+
+  return "http://localhost:5000/api";
 };
 
 export const api = axios.create({

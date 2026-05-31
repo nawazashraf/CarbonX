@@ -34,4 +34,4 @@ const creditSchema = new mongoose.Schema(
   },
 );
 
-export default mongoose.model("Credit", creditSchema);
+export default mongoose.models.Credit || mongoose.model("Credit", creditSchema);

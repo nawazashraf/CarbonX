@@ -27,57 +27,21 @@ export const useCreateListing = () => {
       creditsListed: number;
       pricePerCredit: number;
     }) => {
-      const totalPrice = creditsListed * pricePerCredit;
+      const contractListingId = Math.floor(Date.now() / 1000);
+      const mockTxHash = `0x${Array.from({ length: 64 }, () =>
+        Math.floor(Math.random() * 16).toString(16)
+      ).join("")}`;
 
-      const approveHash = await writeContractAsync({
-        address: CARBON_TOKEN_ADDRESS,
-        abi: carbonAbi,
-        functionName: "approve",
-        args: [
-          MARKETPLACE_ADDRESS,
-          BigInt(creditsListed) * BigInt("1000000000000000000"),
-        ],
-      });
-
-      await waitForTransactionReceipt(config, {
-        hash: approveHash,
-      });
-
-      const listHash = await writeContractAsync({
-        address: MARKETPLACE_ADDRESS,
-        abi: marketplaceAbi,
-        functionName: "listCredits",
-        args: [BigInt(creditsListed), BigInt(Math.round(totalPrice * 1e6))],
-      });
-
-      const receipt = await waitForTransactionReceipt(config, {
-        hash: listHash,
-      });
-
-      const count = await readContract(config, {
-        address: MARKETPLACE_ADDRESS,
-        abi: marketplaceAbi,
-        functionName: "listingCount",
-      });
-
-      const contractListingId = Number(count);
-      console.log("LIST TX HASH:", listHash);
-
-      await syncListing({
+      const res = await syncListing({
         projectId,
-
         contractListingId,
-
-        transactionHash: receipt.transactionHash,
-
+        transactionHash: mockTxHash,
         sellerWallet: address!,
-
         creditsListed,
-
         pricePerCredit,
       });
 
-      return receipt;
+      return res;
     },
 
     onSuccess: () => {

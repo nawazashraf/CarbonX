@@ -38,7 +38,7 @@ const retirementSchema = new mongoose.Schema(
     timestamps: true
 });
 
-export default mongoose.model(
+export default mongoose.models.Retirement || mongoose.model(
     "Retirement",
     retirementSchema
 );

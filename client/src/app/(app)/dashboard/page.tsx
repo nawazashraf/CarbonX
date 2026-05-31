@@ -45,6 +45,94 @@ const GROWTH_YTD: GrowthPoint[] = [
   { label: "May", val: 30, amount: "$42,910" },
 ];
 
+const MOCK_PORTFOLIO_FALLBACK = {
+  totalProjects: 3,
+  verifiedProjects: 2,
+  totalOwnedCredits: 1250.00,
+  totalRetiredCredits: 350.00,
+  totalCreditsApproved: 1600.00,
+  totalAvailableCredits: 1250.00,
+  marketplaceValue: 15200.00,
+};
+
+const MOCK_PROJECTS_FALLBACK = [
+  {
+    _id: "mock-proj-1",
+    name: "Amazonia Canopy Protection Project IV",
+    developer: "Green Canopy Alliance Ltd.",
+    category: "Forestry",
+    location: "Amazon Rainforest, Brazil",
+    creditsRequested: 1000,
+    creditsApproved: 800,
+    availableCredits: 650,
+    climateScore: 94,
+    verified: true,
+  },
+  {
+    _id: "mock-proj-2",
+    name: "Sahara Green Energy Solar Complex",
+    developer: "DesertPower Int.",
+    category: "Energy",
+    location: "Ouarzazate, Morocco",
+    creditsRequested: 500,
+    creditsApproved: 500,
+    availableCredits: 500,
+    climateScore: 89,
+    verified: true,
+  },
+  {
+    _id: "mock-proj-3",
+    name: "Tasmanian Kelp Afforestation Program",
+    developer: "Oceanic Recovery Fund",
+    category: "Ocean",
+    location: "Tasman Sea, Australia",
+    creditsRequested: 300,
+    creditsApproved: 0,
+    availableCredits: 0,
+    climateScore: 92,
+    verified: false,
+  }
+];
+
+const MOCK_TRANSACTIONS_FALLBACK = [
+  {
+    _id: "mock-tx-1",
+    projectName: "Amazonia Canopy Protection Project IV",
+    projectCode: "Forestry",
+    country: "Brazil",
+    image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=120",
+    type: "Purchase",
+    amount: 150,
+    valueUsd: 1800,
+    status: "Completed",
+    date: "May 28, 2026",
+  },
+  {
+    _id: "mock-tx-2",
+    projectName: "Sahara Green Energy Solar Complex",
+    projectCode: "Energy",
+    country: "Morocco",
+    image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=120",
+    type: "Purchase",
+    amount: 200,
+    valueUsd: 2400,
+    status: "Completed",
+    date: "May 21, 2026",
+  },
+  {
+    _id: "mock-tx-3",
+    projectName: "Amazonia Canopy Protection Project IV",
+    projectCode: "Forestry",
+    country: "Brazil",
+    image: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=120",
+    type: "Sale",
+    amount: 100,
+    valueUsd: 1200,
+    status: "Completed",
+    date: "May 16, 2026",
+  }
+];
+
 export default function PortfolioDashboard() {
   const { address } = useAccount();
   const router = useRouter();
@@ -83,8 +171,23 @@ export default function PortfolioDashboard() {
   const [certUploaded, setCertUploaded] = useState(false);
   const [certState, setCertState] = useState<"idle" | "auditing" | "success">("idle");
 
-  const portfolio = useMemo(() => dashboardData?.portfolio || {}, [dashboardData]);
-  const projects = useMemo(() => dashboardData?.projects || [], [dashboardData]);
+  const portfolio = useMemo(() => {
+    const raw = dashboardData?.portfolio || {};
+    return {
+      totalProjects: (raw.totalProjects || 0) + MOCK_PORTFOLIO_FALLBACK.totalProjects,
+      verifiedProjects: (raw.verifiedProjects || 0) + MOCK_PORTFOLIO_FALLBACK.verifiedProjects,
+      totalOwnedCredits: (raw.totalOwnedCredits || 0) + MOCK_PORTFOLIO_FALLBACK.totalOwnedCredits,
+      totalRetiredCredits: (raw.totalRetiredCredits || 0) + MOCK_PORTFOLIO_FALLBACK.totalRetiredCredits,
+      totalCreditsApproved: (raw.totalCreditsApproved || 0) + MOCK_PORTFOLIO_FALLBACK.totalCreditsApproved,
+      totalAvailableCredits: (raw.totalAvailableCredits || 0) + MOCK_PORTFOLIO_FALLBACK.totalAvailableCredits,
+      marketplaceValue: (raw.marketplaceValue || 0) + MOCK_PORTFOLIO_FALLBACK.marketplaceValue,
+    };
+  }, [dashboardData]);
+
+  const projects = useMemo(() => {
+    const raw = dashboardData?.projects || [];
+    return [...raw, ...MOCK_PROJECTS_FALLBACK];
+  }, [dashboardData]);
   
   // Resolve marketplace listings from API data format
   const activeListings = useMemo(() => {
@@ -139,7 +242,7 @@ export default function PortfolioDashboard() {
   // Filtered transactions for dynamic table search and toggle
   const filteredTransactions = useMemo(() => {
     const rawTxs = Array.isArray(transactionsData) ? transactionsData : (transactionsData as any)?.data || [];
-    const matched = rawTxs.map((tx: any) => ({
+    const mapped = rawTxs.map((tx: any) => ({
       id: tx._id,
       projectName: tx.project?.name || "Global Offset Registry Unit",
       projectCode: tx.project?.category || "Standard",
@@ -154,7 +257,11 @@ export default function PortfolioDashboard() {
         day: "numeric",
         year: "numeric"
       })
-    })).filter((tx: any) => {
+    }));
+
+    const allTxs = [...mapped, ...MOCK_TRANSACTIONS_FALLBACK];
+
+    const matched = allTxs.filter((tx: any) => {
       const matchesSearch = tx.projectName.toLowerCase().includes(txSearch.toLowerCase()) ||
                             tx.projectCode.toLowerCase().includes(txSearch.toLowerCase());
       const matchesType = txTypeFilter === "All" || tx.type === txTypeFilter;

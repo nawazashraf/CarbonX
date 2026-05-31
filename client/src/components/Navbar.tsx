@@ -30,7 +30,6 @@ export default function Navbar() {
     { label: "Projects", href: "/projects" },
     { label: "Retirement", href: "/retirement" },
     { label: "Rankings", href: "/rankings" },
-    { label: "Analytics", href: "/analytics" },
   ];
 
   return (

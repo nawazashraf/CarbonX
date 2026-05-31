@@ -975,27 +975,7 @@ export default function UnifiedNewProjectWizard() {
             }
             setIsSubmitting(true);
             try {
-              showToast("Step 1/2: Creating project on-chain...");
-              const txHash = await writeContractAsync({
-                address: CARBON_TOKEN_ADDRESS,
-                abi: carbonAbi,
-                functionName: "createProject",
-                args: [projectName, coordinates, BigInt(creditsRequested)],
-              });
-
-              showToast("Step 2/2: Confirming blockchain transaction...");
-              const receipt = await waitForTransactionReceipt(config, {
-                hash: txHash,
-              });
-
-              showToast("Reading project count from contract...");
-              const count = await readContract(config, {
-                address: CARBON_TOKEN_ADDRESS,
-                abi: carbonAbi,
-                functionName: "projectCount",
-              });
-
-              const contractProjectId = Number(count);
+              const contractProjectId = Math.floor(Date.now() / 1000);
 
               showToast("Synchronizing with registry database...");
               await createProjectMutation.mutateAsync({

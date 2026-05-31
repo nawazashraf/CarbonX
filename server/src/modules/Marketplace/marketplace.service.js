@@ -33,6 +33,13 @@ export const syncListingService = async (data) => {
     throw new Error("Project not found");
   }
 
+  if (project.availableCredits < data.creditsListed) {
+    throw new Error("Insufficient credits");
+  }
+
+  project.availableCredits -= data.creditsListed;
+  await project.save();
+
   const listing = await Marketplace.create({
     contractListingId: data.contractListingId,
     transactionHash: data.transactionHash,
