@@ -1,5 +1,5 @@
 import Transaction from "./transaction.model.js";
-import Marketplace from "../marketplace/marketplace.model.js";
+import Marketplace from "../Marketplace/marketplace.model.js";
 import Project from "../Projects/project.model.js";
 
 export const createTransaction = async (data) => {
