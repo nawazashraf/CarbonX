@@ -36,23 +36,7 @@ Ensure you have the following installed on your system:
 *   [MongoDB](https://www.mongodb.com/) (running locally or a Mongo Atlas URL)
 *   A Web3 wallet (e.g., MetaMask) connected to the **Base Sepolia Testnet**
 
-### 2. Environment Variables Setup
-
-#### Backend (`server/.env`):
-Create a `.env` file in the `server` directory:
-```env
-PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/carbonx
-CLIENT_URL=http://localhost:3000
-```
-
-#### Frontend (`client/.env.local`):
-Create a `.env.local` file in the `client` directory:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-### 3. Local Installation & Development
+### 2. Local Installation & Development
 
 To install dependencies for all directories in a single command, run the following from the root directory:
 ```bash
