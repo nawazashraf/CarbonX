@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 const dev = process.env.NODE_ENV !== "production";
 
 // Client directory path (absolute to compile/serve correctly)
-const clientDir = path.resolve(__dirname, "../../client");
+const clientDir = path.resolve(process.cwd(), "client");
 
 const nextApp = next({ dev, dir: clientDir });
 const nextHandler = nextApp.getRequestHandler();
@@ -38,7 +38,9 @@ async function startServer() {
   } else {
     // In development mode (if started standalone)
     app.get("/", (req, res) => {
-      res.json({ message: "CarbonX API Server running in standalone dev mode" });
+      res.json({
+        message: "CarbonX API Server running in standalone dev mode",
+      });
     });
   }
 
