@@ -1,13 +1,8 @@
 {
   "name": "carbonx-root",
   "version": "1.0.0",
-  "description": "CarbonX Root Registry Monorepo",
   "scripts": {
-    "install:client": "npm install --prefix client",
-    "install:server": "npm install --prefix server",
-    "postinstall": "npm run install:client && npm run install:server",
-    "build:client": "npm run build --prefix client",
-    "build": "npm install --prefix client && npm install --prefix server && npm run build --prefix client",
+    "build": "npm run build --prefix client",
     "start": "npm start --prefix server"
   }
 }
